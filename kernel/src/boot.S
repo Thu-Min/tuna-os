@@ -11,7 +11,7 @@ mb2_header_start:
     .long MB2_HEADER_LEN
     .long MB2_CHECKSUM
 
-    // end tag (type=0, flags=0, size=8)
+    // End tag (type=0, flags=0, size=8).
     .short 0
     .short 0
     .long 8
@@ -23,23 +23,24 @@ stack_bottom:
     .skip 16384
 stack_top:
 
-// Page tables (4-level). We identity-map 0..1GiB using 2MiB pages.
+// Page tables must be in a non-BSS section because they have non-zero initial values.
+.section .data
 .align 4096
 pml4:
-    .quad pdpt | 0x003 // Present | Write
+    .quad pdpt + 0x003 // Present | Write
 .align 4096
 pdpt:
-    .quad pd0 | 0x003
+    .quad pd0 + 0x003
     .quad 0
     .quad 0
     .quad 0
 .align 4096
 pd0:
-    // 512 entries * 2MiB = .1GiB
+    // 512 entries * 2 MiB = 1 GiB identity map.
     .set i, 0
     .rept 512
-        .quad (i * 0x200000) | 0x083 // Present|Writes|PS(2MiB)
-        .set i, i+1
+        .quad (i * 0x200000) + 0x083 // Present | Write | PS
+        .set i, i + 1
     .endr
 
 .section .text
@@ -49,31 +50,30 @@ _start:
     cli
     mov $stack_top, %esp
 
-    // Enable PAE (CR4.PAE = 1)
+    // Enable PAE (CR4.PAE = 1).
     mov %cr4, %eax
     or $0x20, %eax
-    mov %eas, %cr4
+    mov %eax, %cr4
 
-    // Load PML4 into CR3
+    // Load PML4 into CR3.
     mov $pml4, %eax
     mov %eax, %cr3
 
-    // Enable Long Mode in EFER (MSR 0xC0000080), set LME bit (bit 8)
+    // Enable Long Mode in EFER MSR (0xC0000080), set LME bit (bit 8).
     mov $0xC0000080, %ecx
     rdmsr
-    or $0xC0000100, %eax
+    or $0x00000100, %eax
     wrmsr
 
-    // Enable paging (CR0.PG=1) and protected mode already on.
+    // Enable paging (CR0.PG=1). Protected mode is already on.
     mov %cr0, %eax
     or $0x80000000, %eax
     mov %eax, %cr0
 
-    // Load a minial GDT suitable for long mode, then far jump.
+    // Load a minimal GDT suitable for long mode, then far jump.
     lgdt gdt64_ptr
     ljmp $0x08, $long_mode_entry
 
-// ---- 64-bit mode ----
 .code64
 long_mode_entry:
     mov $0x10, %ax
@@ -81,28 +81,26 @@ long_mode_entry:
     mov %ax, %es
     mov %ax, %ss
     mov %ax, %fs
-    mov %as, %gs
+    mov %ax, %gs
 
-    // Use the same stack, but set RSP (64-bit)
+    // Use the same stack, but set RSP in 64-bit mode.
     lea stack_top(%rip), %rsp
 
-    extern kernel_main
     call kernel_main
 
 .hang:
     hlt
     jmp .hang
 
-// ---- GDT ----
 .align 8
 gdt64:
-    .quad 0x0000000000000000 // null
-    // 0x80: 64-bit code segment
+    .quad 0x0000000000000000 // Null.
+    // 0x08: 64-bit code segment.
     .quad 0x00AF9A000000FFFF
-    // 0x10: data segment
+    // 0x10: data segment.
     .quad 0x00AF92000000FFFF
 
 gdt64_ptr:
-    .word(gdt64_end - gdt64 - 1)
+    .word (gdt64_end - gdt64 - 1)
     .long gdt64
 gdt64_end:
