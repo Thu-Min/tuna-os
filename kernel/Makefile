@@ -6,8 +6,14 @@ GRUB_MKRESCUE ?= $(firstword \
 	$(shell command -v x86_64-elf-grub-mkrescue 2>/dev/null) \
 	$(shell command -v grub-mkrescue 2>/dev/null))
 QEMU ?= qemu-system-x86_64
-QEMU_FLAGS := -cdrom $(BUILD)/kernel.iso -display none -monitor none \
-			  -serial stdio -no-reboot -no-shutdown
+QEMU_EFI_CODE ?= $(firstword \
+	$(wildcard /opt/homebrew/share/qemu/edk2-x86_64-code.fd) \
+	$(wildcard /usr/local/share/qemu/edk2-x86_64-code.fd))
+QEMU_EFI_VARS_TEMPLATE ?= $(firstword \
+	$(wildcard /opt/homebrew/share/qemu/edk2-x86_64-vars.fd) \
+	$(wildcard /usr/local/share/qemu/edk2-x86_64-vars.fd) \
+	$(wildcard /opt/homebrew/share/qemu/edk2-i386-vars.fd) \
+	$(wildcard /usr/local/share/qemu/edk2-i386-vars.fd))
 
 CFLAGS  := -std=c11 -O2 -g -ffreestanding -fno-pic -fno-pie -mno-red-zone \
 		   -Wall -Wextra -Werror
@@ -16,13 +22,21 @@ LDFLAGS := -nostdlib -T linker.ld
 BUILD	:= build
 ISO_DIR := iso
 KERNEL  := $(BUILD)/kernel.elf
+QEMU_EFI_VARS := $(BUILD)/edk2-vars.fd
+QEMU_COMMON_FLAGS = -boot order=d -cdrom $(BUILD)/kernel.iso -display none -monitor none \
+					-serial stdio -no-reboot -no-shutdown
+QEMU_BIOS_FLAGS = -machine q35,accel=tcg $(QEMU_COMMON_FLAGS)
+QEMU_EFI_FLAGS = -machine q35,accel=tcg \
+				 -drive if=pflash,format=raw,readonly=on,file=$(QEMU_EFI_CODE) \
+				 -drive if=pflash,format=raw,file=$(QEMU_EFI_VARS) \
+				 $(QEMU_COMMON_FLAGS)
 
-SRCS_C  := src/kernel.c src/serial.c
-SRCS_S  := src/boot.S
+SRCS_C  := src/kernel.c src/serial.c src/gdt.c src/idt.c
+SRCS_S  := src/boot.S src/gdt_flush.S src/interrupts.S
 OBJS    := $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS_C)) \
 		   $(patsubst src/%.S,$(BUILD)/%.o,$(SRCS_S))
 
-.PHONY: all clean iso run debug toolchain-check run-check
+.PHONY: all clean iso run run-efi debug debug-efi toolchain-check run-check efi-check
 
 all: toolchain-check $(KERNEL)
 
@@ -78,10 +92,33 @@ run-check:
 	}; \
 	test $$missing -eq 0
 
+efi-check:
+	@missing=0; \
+	test -n "$(QEMU_EFI_CODE)" || { \
+		echo "error: missing QEMU EDK2 code firmware"; \
+		echo "expected: /opt/homebrew/share/qemu/edk2-x86_64-code.fd"; \
+		missing=1; \
+	}; \
+	test -n "$(QEMU_EFI_VARS_TEMPLATE)" || { \
+		echo "error: missing QEMU EDK2 vars template"; \
+		echo "expected one of: edk2-x86_64-vars.fd or edk2-i386-vars.fd"; \
+		missing=1; \
+	}; \
+	test $$missing -eq 0
+
+$(QEMU_EFI_VARS): efi-check | $(BUILD)
+	@if [ ! -f "$@" ]; then cp "$(QEMU_EFI_VARS_TEMPLATE)" "$@"; fi
+
 run: iso run-check
-	$(QEMU) $(QEMU_FLAGS)
+	$(QEMU) $(QEMU_BIOS_FLAGS)
+
+run-efi: iso run-check $(QEMU_EFI_VARS)
+	$(QEMU) $(QEMU_EFI_FLAGS)
 
 debug: iso run-check
-	$(QEMU) $(QEMU_FLAGS) -s -S
+	$(QEMU) $(QEMU_BIOS_FLAGS) -s -S
+
+debug-efi: iso run-check $(QEMU_EFI_VARS)
+	$(QEMU) $(QEMU_EFI_FLAGS) -s -S
 clean:
 	rm -rf $(BUILD) $(ISO_DIR)

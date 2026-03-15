@@ -98,7 +98,7 @@ gdt64:
     // 0x08: 64-bit code segment.
     .quad 0x00AF9A000000FFFF
     // 0x10: data segment.
-    .quad 0x00AF92000000FFFF
+    .quad 0x00CF92000000FFFF
 
 gdt64_ptr:
     .word (gdt64_end - gdt64 - 1)
