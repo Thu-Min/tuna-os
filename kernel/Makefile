@@ -36,7 +36,7 @@ SRCS_S  := src/boot.S src/gdt_flush.S src/interrupts.S
 OBJS    := $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS_C)) \
 		   $(patsubst src/%.S,$(BUILD)/%.o,$(SRCS_S))
 
-.PHONY: all clean iso run run-efi debug debug-efi toolchain-check run-check efi-check
+.PHONY: all clean iso run run-bios debug debug-bios toolchain-check run-check efi-check
 
 all: toolchain-check $(KERNEL)
 
@@ -109,16 +109,16 @@ efi-check:
 $(QEMU_EFI_VARS): efi-check | $(BUILD)
 	@if [ ! -f "$@" ]; then cp "$(QEMU_EFI_VARS_TEMPLATE)" "$@"; fi
 
-run: iso run-check
-	$(QEMU) $(QEMU_BIOS_FLAGS)
-
-run-efi: iso run-check $(QEMU_EFI_VARS)
+run: iso run-check efi-check $(QEMU_EFI_VARS)
 	$(QEMU) $(QEMU_EFI_FLAGS)
 
-debug: iso run-check
-	$(QEMU) $(QEMU_BIOS_FLAGS) -s -S
+run-bios: iso run-check
+	$(QEMU) $(QEMU_BIOS_FLAGS)
 
-debug-efi: iso run-check $(QEMU_EFI_VARS)
+debug: iso run-check efi-check $(QEMU_EFI_VARS)
 	$(QEMU) $(QEMU_EFI_FLAGS) -s -S
+
+debug-bios: iso run-check
+	$(QEMU) $(QEMU_BIOS_FLAGS) -s -S
 clean:
 	rm -rf $(BUILD) $(ISO_DIR)
