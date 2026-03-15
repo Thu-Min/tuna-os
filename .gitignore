@@ -16,3 +16,4 @@ kernel/iso/
 
 # Debug artifacts
 *.log
+.branchos-runtime/
