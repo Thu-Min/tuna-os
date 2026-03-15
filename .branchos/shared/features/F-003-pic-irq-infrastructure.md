@@ -1,11 +1,11 @@
 ---
 id: F-003
 title: PIC remapping and IRQ infrastructure
-status: unassigned
+status: in-progress
 milestone: M1
 branch: feature/pic-irq-infrastructure
 issue: 3
-workstream: null
+workstream: pic-remapping-and-irq-infrastructure
 ---
 
 Initialize the 8259 PIC, remap IRQs 0-15 to IDT vectors 32-47 to avoid collision with CPU exceptions, and provide an IRQ dispatch path with proper EOI signaling.
