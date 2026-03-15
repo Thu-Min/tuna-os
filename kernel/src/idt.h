@@ -25,5 +25,8 @@ struct interrupt_frame {
     uint64_t rflags;
 } __attribute__((packed));
 
+typedef void (*irq_handler_t)(struct interrupt_frame *frame);
+
 void idt_init(void);
 void isr_dispatch(struct interrupt_frame *frame);
+void irq_register_handler(uint8_t irq, irq_handler_t handler);

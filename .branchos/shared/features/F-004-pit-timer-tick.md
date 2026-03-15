@@ -1,11 +1,11 @@
 ---
 id: F-004
 title: PIT timer and tick counter
-status: unassigned
+status: in-progress
 milestone: M1
 branch: feature/pit-timer-tick
 issue: 4
-workstream: null
+workstream: pit-timer-and-tick-counter
 ---
 
 Configure the Programmable Interval Timer (PIT) channel 0 to fire periodic IRQ0 interrupts, maintain a global tick counter, and provide a basic time reference for the kernel.

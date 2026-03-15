@@ -1,6 +1,7 @@
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
+#include "pit.h"
 #include "serial.h"
 
 #define BREAKPOINT_SELF_TEST 1
@@ -25,6 +26,10 @@ void kernel_main(void) {
     serial_write("kernel: initializing pic...\n");
     pic_init();
     serial_write("kernel: pic ready\n");
+
+    serial_write("kernel: initializing pit...\n");
+    pit_init(100);
+    serial_write("kernel: pit ready\n");
 
     serial_write("kernel: enabling interrupts\n");
     __asm__ volatile ("sti");
