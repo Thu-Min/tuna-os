@@ -29,6 +29,7 @@ struct idt_ptr {
 } __attribute__((packed));
 
 static struct idt_entry idt[IDT_ENTRIES];
+static irq_handler_t irq_handlers[16];
 
 extern void (*isr_stub_table[ISR_STUB_COUNT])(void);
 
@@ -98,13 +99,23 @@ void idt_init(void) {
     lidt(&idtr);
 }
 
+void irq_register_handler(uint8_t irq, irq_handler_t handler) {
+    if (irq < 16) {
+        irq_handlers[irq] = handler;
+    }
+}
+
 void isr_dispatch(struct interrupt_frame *frame) {
     // IRQ dispatch (vectors 32-47).
     if (frame->vector >= IRQ_BASE && frame->vector < IRQ_BASE + 16) {
         uint8_t irq = (uint8_t)(frame->vector - IRQ_BASE);
-        serial_write("[irq] irq=");
-        serial_write_dec_u64(irq);
-        serial_write("\n");
+        if (irq_handlers[irq]) {
+            irq_handlers[irq](frame);
+        } else {
+            serial_write("[irq] irq=");
+            serial_write_dec_u64(irq);
+            serial_write("\n");
+        }
         pic_eoi(irq);
         return;
     }
