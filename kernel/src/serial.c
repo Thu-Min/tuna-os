@@ -1,14 +1,6 @@
 #include "serial.h"
 
-static inline void outb(uint16_t port, uint8_t value) {
-    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
-static inline uint8_t inb(uint16_t port) {
-    uint8_t ret;
-    __asm__ volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
+#include "io.h"
 
 static inline int tx_empty(void) {
     // Line Status Register (LSR) bit 5 = THR empty
@@ -26,14 +18,47 @@ void serial_init(void) {
     outb(0x3F8 + 4, 0x0B); // IRQs enabled, RTS/DSR set
 }
 
-static void serial_putc(char c) {
+void serial_write_char(char c) {
     while (!tx_empty()) {}
     outb(0x3F8, (uint8_t)c);
 }
 
 void serial_write(const char *s) {
     for (; *s; s++) {
-        if (*s == '\n') serial_putc('\r');
-        serial_putc(*s);
+        if (*s == '\n') serial_write_char('\r');
+        serial_write_char(*s);
+    }
+}
+
+void serial_write_hex_u64(uint64_t value) {
+    static const char hex[] = "0123456789ABCDEF";
+    int started = 0;
+
+    serial_write("0x");
+    for (int shift = 60; shift >= 0; shift -= 4) {
+        uint8_t nibble = (uint8_t)((value >> shift) & 0xF);
+        if (nibble != 0 || started || shift == 0) {
+            serial_write_char(hex[nibble]);
+            started = 1;
+        }
+    }
+}
+
+void serial_write_dec_u64(uint64_t value) {
+    char buf[21];
+    int i = 0;
+
+    if (value == 0) {
+        serial_write_char('0');
+        return;
+    }
+
+    while (value > 0) {
+        buf[i++] = (char)('0' + (value % 10));
+        value /= 10;
+    }
+
+    while (i > 0) {
+        serial_write_char(buf[--i]);
     }
 }

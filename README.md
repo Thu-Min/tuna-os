@@ -2,7 +2,7 @@
 
 Educational Unix-like kernel project for x86_64, booted with GRUB (Multiboot2) and run on QEMU.
 
-Phase 1 (boot + serial output).
+Current milestone: Phase 2 (GDT + IDT + exceptions over serial).
 
 ## Project Goals
 
@@ -12,7 +12,7 @@ Phase 1 (boot + serial output).
 - Serial console on COM1 as first output path
 - QEMU + GDB debug workflow
 
-## Current Status (Phase 1)
+## Current Status (Phase 2)
 
 Implemented:
 
@@ -20,8 +20,12 @@ Implemented:
 - Early x86_64 transition path
 - Kernel entry (`kernel_main`)
 - COM1 serial driver
+- Structured kernel GDT setup and reload
+- IDT setup for CPU exception vectors (0-31)
+- Exception stubs in assembly + C dispatcher
+- Breakpoint (`int3`) self-test path
 - GRUB ISO image generation
-- QEMU run/debug targets
+- QEMU BIOS and EFI run/debug targets
 
 ## Repository Layout
 
@@ -34,6 +38,12 @@ tuna_os/
     ├── grub.cfg              # GRUB menu entry
     └── src/
         ├── boot.S            # Multiboot2 + early boot + long mode jump
+        ├── gdt.c             # kernel GDT table setup
+        ├── gdt.h
+        ├── gdt_flush.S       # LGDT + segment reload helper
+        ├── idt.c             # IDT setup + exception dispatcher
+        ├── idt.h
+        ├── interrupts.S      # exception entry stubs + common path
         ├── kernel.c          # kernel entry point
         ├── serial.c          # COM1 serial driver
         └── serial.h
@@ -72,22 +82,44 @@ make -C kernel all
 
 ## Run (Serial Console)
 
+BIOS path:
+
 ```bash
 make run
+```
+
+EFI path (recommended fallback if BIOS CD boot fails on your host):
+
+```bash
+make run-efi
 ```
 
 Expected output on terminal:
 
 ```text
 kernel: hello from tuna os!
+phase2: initializing gdt...
+phase2: gdt ready
+phase2: initializing idt...
+phase2: idt ready
+phase2: triggering int3 self-test
+[exception] vector=3 (Breakpoint) error=0x0 rip=...
+[exception] breakpoint handled, resuming.
+phase2: idle loop
 ```
 
 ## Debug (QEMU + GDB)
 
-Start QEMU paused with GDB stub:
+Start QEMU paused with GDB stub (BIOS):
 
 ```bash
 make debug
+```
+
+Or paused with EFI firmware:
+
+```bash
+make debug-efi
 ```
 
 In another terminal:
@@ -103,3 +135,15 @@ target remote :1234
 break kernel_main
 continue
 ```
+
+## Phase 2 Notes
+
+- Exception handling currently treats most CPU faults as fatal and halts.
+- Breakpoint (`int3`) is handled and returns for bring-up verification.
+- `PHASE2_BREAKPOINT_SELF_TEST` in `/Volumes/BulkStorage/geek/tuna_os/kernel/src/kernel.c` controls automatic self-test trigger.
+
+## Next Milestone (Phase 3)
+
+- Programmable timer interrupt (PIT/APIC)
+- IRQ remapping and interrupt enable path
+- Tick counter and minimal scheduler groundwork

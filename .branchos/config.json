@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 3,
+  "map": {
+    "excludes": ["node_modules", "dist", "build", ".branchos", ".git", "*.lock", "*.min.*"],
+    "stalenessThreshold": 20
+  }
+}

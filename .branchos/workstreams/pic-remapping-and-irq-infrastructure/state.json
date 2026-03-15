@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 3,
+  "status": "active",
+  "tasks": [],
+  "currentPhase": 1,
+  "phases": [
+    {
+      "number": 1,
+      "status": "completed",
+      "discuss": {
+        "status": "complete",
+        "createdAt": "2026-03-15T04:10:00Z",
+        "updatedAt": "2026-03-15T04:10:00Z"
+      },
+      "plan": {
+        "status": "complete",
+        "createdAt": "2026-03-15T04:15:00Z",
+        "updatedAt": "2026-03-15T04:15:00Z"
+      },
+      "execute": {
+        "status": "complete",
+        "createdAt": "2026-03-15T04:25:00Z",
+        "updatedAt": "2026-03-15T04:25:00Z"
+      },
+      "planBaseline": "e4e2a771bed37c3be3dc1b0124245cdaf631fcef"
+    }
+  ]
+}
