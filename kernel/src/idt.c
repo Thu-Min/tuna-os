@@ -3,10 +3,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "pic.h"
 #include "serial.h"
 
 #define IDT_ENTRIES 256
 #define EXCEPTION_COUNT 32
+#define ISR_STUB_COUNT 48
+#define IRQ_BASE 32
 #define KERNEL_CODE_SELECTOR 0x08
 #define IDT_GATE_INTERRUPT 0x8E
 
@@ -27,7 +30,7 @@ struct idt_ptr {
 
 static struct idt_entry idt[IDT_ENTRIES];
 
-extern void (*isr_stub_table[EXCEPTION_COUNT])(void);
+extern void (*isr_stub_table[ISR_STUB_COUNT])(void);
 
 static const char *const exception_names[EXCEPTION_COUNT] = {
     "Divide Error",
@@ -86,7 +89,7 @@ void idt_init(void) {
         idt[i] = (struct idt_entry){0};
     }
 
-    for (size_t i = 0; i < EXCEPTION_COUNT; i++) {
+    for (size_t i = 0; i < ISR_STUB_COUNT; i++) {
         idt_set_gate((uint8_t)i, isr_stub_table[i], IDT_GATE_INTERRUPT);
     }
 
@@ -96,6 +99,17 @@ void idt_init(void) {
 }
 
 void isr_dispatch(struct interrupt_frame *frame) {
+    // IRQ dispatch (vectors 32-47).
+    if (frame->vector >= IRQ_BASE && frame->vector < IRQ_BASE + 16) {
+        uint8_t irq = (uint8_t)(frame->vector - IRQ_BASE);
+        serial_write("[irq] irq=");
+        serial_write_dec_u64(irq);
+        serial_write("\n");
+        pic_eoi(irq);
+        return;
+    }
+
+    // CPU exception dispatch (vectors 0-31).
     serial_write("\n[exception] vector=");
     serial_write_dec_u64(frame->vector);
 
