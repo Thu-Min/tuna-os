@@ -1,0 +1,17 @@
+{
+  "contentHash": "c89d1852c3f5b1976c07b30232b57b331938e6761cc10e7202527029f4d1aa2f",
+  "ingestedAt": "2026-03-15T03:16:09.907Z",
+  "version": 1,
+  "sectionsFound": [
+    "headline",
+    "subheadline",
+    "problem",
+    "solution",
+    "quote",
+    "cta",
+    "customer-faq",
+    "internal-faq"
+  ],
+  "sectionsMissing": [],
+  "sourceSize": 5967
+}
