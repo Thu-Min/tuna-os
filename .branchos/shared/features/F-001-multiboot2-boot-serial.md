@@ -1,7 +1,7 @@
 ---
 id: F-001
 title: Multiboot2 boot and serial output
-status: unassigned
+status: complete
 milestone: M1
 branch: feature/multiboot2-boot-serial
 issue: 1

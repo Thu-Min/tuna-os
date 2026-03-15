@@ -6,12 +6,12 @@
 
 ---
 
-## M1: Boot & Interrupts (0/4 features complete)
+## M1: Boot & Interrupts (2/4 features complete)
 
 | # | Feature | Status | Depends On |
 |---|---------|--------|------------|
-| F-001 | Multiboot2 boot and serial output | unassigned | -- |
-| F-002 | GDT and IDT with exception handling | unassigned | F-001 |
+| F-001 | Multiboot2 boot and serial output | complete | -- |
+| F-002 | GDT and IDT with exception handling | complete | F-001 |
 | F-003 | PIC remapping and IRQ infrastructure | unassigned | F-002 |
 | F-004 | PIT timer and tick counter | unassigned | F-003 |
 

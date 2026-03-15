@@ -1,7 +1,7 @@
 ---
 id: F-002
 title: GDT and IDT with exception handling
-status: unassigned
+status: complete
 milestone: M1
 branch: feature/gdt-idt-exceptions
 issue: 2
