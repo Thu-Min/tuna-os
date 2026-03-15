@@ -4,7 +4,7 @@ title: Physical memory map detection
 status: unassigned
 milestone: M2
 branch: feature/physical-memory-map
-issue: null
+issue: 5
 workstream: null
 ---
 

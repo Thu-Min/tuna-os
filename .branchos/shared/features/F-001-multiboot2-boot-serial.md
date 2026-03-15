@@ -4,7 +4,7 @@ title: Multiboot2 boot and serial output
 status: unassigned
 milestone: M1
 branch: feature/multiboot2-boot-serial
-issue: null
+issue: 1
 workstream: null
 ---
 

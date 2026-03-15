@@ -4,7 +4,7 @@ title: Kernel heap allocator
 status: unassigned
 milestone: M2
 branch: feature/kernel-heap
-issue: null
+issue: 8
 workstream: null
 ---
 

@@ -4,7 +4,7 @@ title: Minimal interactive shell
 status: unassigned
 milestone: M4
 branch: feature/minimal-shell
-issue: null
+issue: 16
 workstream: null
 ---
 

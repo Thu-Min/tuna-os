@@ -4,7 +4,7 @@ title: GDT and IDT with exception handling
 status: unassigned
 milestone: M1
 branch: feature/gdt-idt-exceptions
-issue: null
+issue: 2
 workstream: null
 ---
 

@@ -4,7 +4,7 @@ title: Task control block and kernel threads
 status: unassigned
 milestone: M3
 branch: feature/task-control-block
-issue: null
+issue: 9
 workstream: null
 ---
 

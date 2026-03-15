@@ -4,7 +4,7 @@ title: Kernel page table management
 status: unassigned
 milestone: M2
 branch: feature/kernel-page-tables
-issue: null
+issue: 7
 workstream: null
 ---
 
