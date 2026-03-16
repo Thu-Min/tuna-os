@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "physical-memory-map",
+  "branch": "feature/physical-memory-map",
+  "status": "active",
+  "createdAt": "2026-03-16T00:00:00.000Z",
+  "updatedAt": "2026-03-16T00:00:00.000Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 5,
+  "featureId": "F-005"
+}
