@@ -1,14 +1,19 @@
 #include "gdt.h"
 #include "idt.h"
+#include "multiboot2.h"
 #include "pic.h"
 #include "pit.h"
 #include "serial.h"
 
 #define BREAKPOINT_SELF_TEST 1
 
-void kernel_main(void) {
+void kernel_main(uint64_t multiboot2_addr) {
     serial_init();
     serial_write("kernel: hello from tuna os!\n");
+
+    serial_write("kernel: parsing multiboot2 memory map...\n");
+    multiboot2_parse_mmap(multiboot2_addr);
+    multiboot2_print_mmap();
 
     serial_write("kernel: initializing gdt...\n");
     gdt_init();
