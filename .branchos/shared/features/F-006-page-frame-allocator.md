@@ -1,11 +1,11 @@
 ---
 id: F-006
 title: Physical page frame allocator
-status: unassigned
+status: in-progress
 milestone: M2
 branch: feature/page-frame-allocator
 issue: 6
-workstream: null
+workstream: physical-page-frame-allocator
 ---
 
 Implement a physical page frame allocator that tracks free and used 4 KiB pages using a bitmap, initialized from the detected memory map.
