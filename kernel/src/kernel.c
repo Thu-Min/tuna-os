@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "idt.h"
+#include "kheap.h"
 #include "multiboot2.h"
 #include "pic.h"
 #include "pmm.h"
@@ -26,6 +27,33 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing vmm...\n");
     vmm_init();
     serial_write("kernel: vmm ready\n");
+
+    serial_write("kernel: initializing kheap...\n");
+    kheap_init();
+
+    /* kmalloc/kfree self-test */
+    serial_write("kernel: kmalloc self-test...\n");
+    uint64_t *a = kmalloc(64);
+    uint64_t *b = kmalloc(128);
+    if (a && b) {
+        *a = 0xDEADBEEF;
+        *b = 0xCAFEBABE;
+        serial_write("  alloc a=");
+        serial_write_hex_u64((uint64_t)(uintptr_t)a);
+        serial_write(" alloc b=");
+        serial_write_hex_u64((uint64_t)(uintptr_t)b);
+        serial_write("\n");
+        kfree(a);
+        uint64_t *c = kmalloc(32);
+        serial_write("  freed a, alloc c=");
+        serial_write_hex_u64((uint64_t)(uintptr_t)c);
+        serial_write("\n");
+        kfree(b);
+        kfree(c);
+        serial_write("  self-test passed\n");
+    } else {
+        serial_write("  self-test FAILED: kmalloc returned NULL\n");
+    }
 
     serial_write("kernel: initializing gdt...\n");
     gdt_init();

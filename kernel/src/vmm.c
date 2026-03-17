@@ -95,9 +95,14 @@ void vmm_init(void) {
         return;
     }
 
-    uint64_t k_end = (uint64_t)(uintptr_t)_kernel_end;
-    /* Round up to next page boundary */
-    uint64_t map_end = (k_end + VMM_PAGE_SIZE - 1) & PAGE_MASK;
+    /*
+     * Map enough to cover the kernel, heap region, and page table frames
+     * that PMM will hand out.  The boot page tables (2 MiB huge pages)
+     * cover the first 1 GiB, so we're safe to access any physical address
+     * below 1 GiB while building the new tables.  We map 4 MiB here:
+     * kernel (~1 MiB), gap, heap start (2 MiB) + initial heap + headroom.
+     */
+    uint64_t map_end = 4 * 1024 * 1024; /* 4 MiB */
 
     serial_write("vmm: identity-mapping 0x0 to ");
     serial_write_hex_u64(map_end);

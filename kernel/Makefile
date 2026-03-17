@@ -31,7 +31,7 @@ QEMU_EFI_FLAGS = -machine q35,accel=tcg \
 				 -drive if=pflash,format=raw,file=$(QEMU_EFI_VARS) \
 				 $(QEMU_COMMON_FLAGS)
 
-SRCS_C  := src/kernel.c src/serial.c src/gdt.c src/idt.c src/pic.c src/pit.c src/multiboot2.c src/pmm.c src/vmm.c
+SRCS_C  := src/kernel.c src/serial.c src/gdt.c src/idt.c src/pic.c src/pit.c src/multiboot2.c src/pmm.c src/vmm.c src/kheap.c
 SRCS_S  := src/boot.S src/gdt_flush.S src/interrupts.S
 OBJS    := $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS_C)) \
 		   $(patsubst src/%.S,$(BUILD)/%.o,$(SRCS_S))
