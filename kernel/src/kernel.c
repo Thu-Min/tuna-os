@@ -5,6 +5,7 @@
 #include "pmm.h"
 #include "pit.h"
 #include "serial.h"
+#include "vmm.h"
 
 #define BREAKPOINT_SELF_TEST 1
 
@@ -21,6 +22,10 @@ void kernel_main(uint64_t multiboot2_addr) {
     const struct mmap_region *mmap_regions = multiboot2_get_mmap(&mmap_count);
     pmm_init(mmap_regions, mmap_count);
     serial_write("kernel: pmm ready\n");
+
+    serial_write("kernel: initializing vmm...\n");
+    vmm_init();
+    serial_write("kernel: vmm ready\n");
 
     serial_write("kernel: initializing gdt...\n");
     gdt_init();
