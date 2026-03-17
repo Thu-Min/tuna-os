@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "physical-page-frame-allocator",
+  "branch": "feature/physical-page-frame-allocator",
+  "status": "active",
+  "createdAt": "2026-03-17T02:36:11.142Z",
+  "updatedAt": "2026-03-17T02:36:11.142Z",
+  "assignee": "thumin-dev",
+  "issueNumber": null,
+  "featureId": "F-006"
+}

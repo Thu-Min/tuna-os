@@ -2,6 +2,7 @@
 #include "idt.h"
 #include "multiboot2.h"
 #include "pic.h"
+#include "pmm.h"
 #include "pit.h"
 #include "serial.h"
 
@@ -14,6 +15,12 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: parsing multiboot2 memory map...\n");
     multiboot2_parse_mmap(multiboot2_addr);
     multiboot2_print_mmap();
+
+    serial_write("kernel: initializing pmm...\n");
+    uint32_t mmap_count;
+    const struct mmap_region *mmap_regions = multiboot2_get_mmap(&mmap_count);
+    pmm_init(mmap_regions, mmap_count);
+    serial_write("kernel: pmm ready\n");
 
     serial_write("kernel: initializing gdt...\n");
     gdt_init();
