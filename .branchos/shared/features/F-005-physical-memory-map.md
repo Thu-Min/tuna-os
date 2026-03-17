@@ -1,7 +1,7 @@
 ---
 id: F-005
 title: Physical memory map detection
-status: unassigned
+status: complete
 milestone: M2
 branch: feature/physical-memory-map
 issue: 5

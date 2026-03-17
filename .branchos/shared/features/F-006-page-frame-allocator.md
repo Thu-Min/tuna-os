@@ -1,7 +1,7 @@
 ---
 id: F-006
 title: Physical page frame allocator
-status: in-progress
+status: complete
 milestone: M2
 branch: feature/page-frame-allocator
 issue: 6

@@ -1,7 +1,7 @@
 ---
 id: F-004
 title: PIT timer and tick counter
-status: in-progress
+status: complete
 milestone: M1
 branch: feature/pit-timer-tick
 issue: 4

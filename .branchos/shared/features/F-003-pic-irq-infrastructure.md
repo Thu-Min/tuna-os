@@ -1,7 +1,7 @@
 ---
 id: F-003
 title: PIC remapping and IRQ infrastructure
-status: in-progress
+status: complete
 milestone: M1
 branch: feature/pic-irq-infrastructure
 issue: 3
