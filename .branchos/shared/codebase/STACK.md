@@ -1,6 +1,6 @@
 ---
-generated: 2026-03-15T00:00:00Z
-commit: 39072ceafaf7eddc9324babf2194289c4e868893
+generated: 2026-03-15T06:10:00Z
+commit: 6bc7c277cbf0bfc239f249c8c50b112f8907e9e5
 generator: branchos/map-codebase
 ---
 
@@ -32,4 +32,4 @@ This is a bare-metal OS kernel with no package manager dependencies. All tooling
 ## Language Standards
 
 - **C11**: Kernel C code compiled with `-std=c11`
-- **GNU as** (AT&T syntax): Assembly for boot, GDT flush, and ISR stubs
+- **GNU as** (AT&T syntax): Assembly for boot, GDT flush, ISR stubs, and interrupt dispatch

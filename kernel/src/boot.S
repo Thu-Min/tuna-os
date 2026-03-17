@@ -86,6 +86,10 @@ long_mode_entry:
     // Use the same stack, but set RSP in 64-bit mode.
     lea stack_top(%rip), %rsp
 
+    // Pass Multiboot2 info pointer (ebx, set by GRUB at _start) as
+    // first argument to kernel_main.  Writing edi zero-extends to rdi.
+    mov %ebx, %edi
+
     call kernel_main
 
 .hang:

@@ -5,7 +5,7 @@ status: unassigned
 milestone: M2
 branch: feature/physical-memory-map
 issue: 5
-workstream: null
+workstream: physical-memory-map
 ---
 
 Parse the Multiboot2 memory map tag passed by GRUB to detect available physical memory regions, distinguishing usable RAM from reserved areas.
