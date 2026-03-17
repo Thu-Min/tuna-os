@@ -10,6 +10,8 @@ SECTIONS
 {
     . = 1M;
 
+    _kernel_start = .;
+
     .text ALIGN(4K) :
     {
         KEEP(*(.multiboot2))
@@ -31,6 +33,8 @@ SECTIONS
         *(COMMON)
         *(.bss*)
     } :data
+
+    _kernel_end = .;
 
     /DISCARD/ :
     {
