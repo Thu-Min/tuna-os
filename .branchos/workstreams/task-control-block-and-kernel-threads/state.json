@@ -6,7 +6,7 @@
   "phases": [
     {
       "number": 1,
-      "status": "active",
+      "status": "completed",
       "discuss": {
         "status": "complete",
         "createdAt": "2026-03-17T03:50:00.000Z",
@@ -19,7 +19,9 @@
       },
       "planBaseline": "1868767142cfd2686536cdf3522040a63b59df5e",
       "execute": {
-        "status": "not-started"
+        "status": "complete",
+        "createdAt": "2026-03-17T04:00:00.000Z",
+        "updatedAt": "2026-03-17T04:00:00.000Z"
       }
     }
   ]
