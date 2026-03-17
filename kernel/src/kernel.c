@@ -6,9 +6,18 @@
 #include "pmm.h"
 #include "pit.h"
 #include "serial.h"
+#include "task.h"
 #include "vmm.h"
 
 #define BREAKPOINT_SELF_TEST 1
+
+static void test_task_a(void) {
+    serial_write("task_a: running\n");
+}
+
+static void test_task_b(void) {
+    serial_write("task_b: running\n");
+}
 
 void kernel_main(uint64_t multiboot2_addr) {
     serial_init();
@@ -54,6 +63,12 @@ void kernel_main(uint64_t multiboot2_addr) {
     } else {
         serial_write("  self-test FAILED: kmalloc returned NULL\n");
     }
+
+    serial_write("kernel: initializing tasks...\n");
+    task_init();
+    task_create(test_task_a);
+    task_create(test_task_b);
+    serial_write("kernel: tasks ready\n");
 
     serial_write("kernel: initializing gdt...\n");
     gdt_init();
