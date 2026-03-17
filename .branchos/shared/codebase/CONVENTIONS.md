@@ -1,6 +1,6 @@
 ---
-generated: 2026-03-15T06:10:00Z
-commit: 6bc7c277cbf0bfc239f249c8c50b112f8907e9e5
+generated: 2026-03-17T03:45:00Z
+commit: 011dba525df1117917cb24fce38283888cc4f393
 generator: branchos/map-codebase
 ---
 
@@ -9,9 +9,9 @@ generator: branchos/map-codebase
 ## Naming
 
 - **Files**: lowercase with underscores (`gdt_flush.S`, `serial.c`)
-- **Functions**: `snake_case`, prefixed by module name (`serial_write`, `gdt_init`, `idt_set_gate`, `pit_get_ticks`)
+- **Functions**: `snake_case`, prefixed by module name (`serial_write`, `gdt_init`, `pmm_alloc_frame`, `vmm_map_page`). Exception: `kmalloc`/`kfree` use universally recognized kernel names.
 - **Types**: `struct snake_case` with `__attribute__((packed))` for hardware-facing structs; `typedef` for function pointer types (`irq_handler_t`)
-- **Constants/Macros**: `UPPER_SNAKE_CASE` (`IDT_ENTRIES`, `PIT_BASE_FREQ`, `PIC1_CMD`)
+- **Constants/Macros**: `UPPER_SNAKE_CASE` (`IDT_ENTRIES`, `PMM_PAGE_SIZE`, `VMM_FLAG_PRESENT`, `KHEAP_START`)
 - **Assembly labels**: prefixed with `.L` for local labels (`.Lreload_cs`), bare names for globals
 
 ## File Organization
@@ -26,22 +26,33 @@ generator: branchos/map-codebase
 
 - Module-level static globals for hardware tables (`static struct gdt_descriptor gdt[3]`, `static struct idt_entry idt[IDT_ENTRIES]`)
 - `volatile` qualifier for state modified by interrupt handlers (`static volatile uint64_t tick_count`)
-- No dynamic allocation — all structures are statically sized
+- No dynamic allocation in core subsystems — PMM, VMM, GDT, IDT, PIC, PIT all use statically sized structures
+- Kernel heap (`kheap`) is the sole provider of dynamic allocation via `kmalloc`/`kfree`
 - Hardware registers accessed via shared `outb`/`inb` from `io.h`
 
 ## Error Handling
 
 - Fatal exceptions halt the CPU with `cli; hlt` in a loop
 - Non-fatal exceptions (breakpoint) log and return
+- Allocation failures return 0/NULL — callers check return values
 - Serial output is the sole diagnostic channel
 
 ## Import/Export
 
 - C headers expose only public API (`void gdt_init(void)`)
-- Assembly symbols declared `extern` in C files that need them (`extern void gdt_flush(...)`)
+- Assembly symbols declared `extern` in C files that need them (`extern char _kernel_start[]`)
 - Assembly exports use `.global` directive
 - `kernel.c` includes all subsystem headers and calls init functions in sequence
 - IRQ handlers registered via function pointer (`irq_register_handler(irq, handler_fn)`)
+
+## Memory Subsystem Layering
+
+```
+kheap (kmalloc/kfree)
+  └─ vmm (vmm_map_page)
+      └─ pmm (pmm_alloc_frame)
+          └─ multiboot2 (memory map regions)
+```
 
 ## Build
 
