@@ -1,11 +1,11 @@
 ---
 id: F-008
 title: Kernel heap allocator
-status: unassigned
+status: in-progress
 milestone: M2
 branch: feature/kernel-heap
 issue: 8
-workstream: null
+workstream: kernel-heap-allocator
 ---
 
 Implement a kernel heap allocator (kmalloc/kfree) that provides arbitrary-sized dynamic memory allocation backed by the page frame allocator and virtual memory system.
