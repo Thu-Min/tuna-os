@@ -1,11 +1,11 @@
 ---
 id: F-007
 title: Kernel page table management
-status: unassigned
+status: in-progress
 milestone: M2
 branch: feature/kernel-page-tables
 issue: 7
-workstream: null
+workstream: kernel-page-table-management
 ---
 
 Replace the boot-time identity map with a proper kernel page table infrastructure that can map and unmap virtual pages to physical frames on demand.
