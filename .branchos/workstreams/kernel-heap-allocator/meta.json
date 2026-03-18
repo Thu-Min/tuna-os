@@ -2,9 +2,9 @@
   "schemaVersion": 3,
   "workstreamId": "kernel-heap-allocator",
   "branch": "feature/kernel-heap-allocator",
-  "status": "active",
+  "status": "archived",
   "createdAt": "2026-03-17T03:39:58.089Z",
-  "updatedAt": "2026-03-17T03:39:58.089Z",
+  "updatedAt": "2026-03-18T02:11:24.786Z",
   "assignee": "thumin-dev",
   "issueNumber": null,
   "featureId": "F-008"
