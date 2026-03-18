@@ -12,11 +12,17 @@
 #define BREAKPOINT_SELF_TEST 1
 
 static void test_task_a(void) {
-    serial_write("task_a: running\n");
+    for (;;) {
+        serial_write("[A] ");
+        for (volatile int i = 0; i < 500000; i++);
+    }
 }
 
 static void test_task_b(void) {
-    serial_write("task_b: running\n");
+    for (;;) {
+        serial_write("[B] ");
+        for (volatile int i = 0; i < 500000; i++);
+    }
 }
 
 void kernel_main(uint64_t multiboot2_addr) {
@@ -64,12 +70,6 @@ void kernel_main(uint64_t multiboot2_addr) {
         serial_write("  self-test FAILED: kmalloc returned NULL\n");
     }
 
-    serial_write("kernel: initializing tasks...\n");
-    task_init();
-    task_create(test_task_a);
-    task_create(test_task_b);
-    serial_write("kernel: tasks ready\n");
-
     serial_write("kernel: initializing gdt...\n");
     gdt_init();
     serial_write("kernel: gdt ready\n");
@@ -90,6 +90,12 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing pit...\n");
     pit_init(100);
     serial_write("kernel: pit ready\n");
+
+    serial_write("kernel: initializing tasks...\n");
+    task_init();
+    task_create(test_task_a);
+    task_create(test_task_b);
+    serial_write("kernel: tasks ready\n");
 
     serial_write("kernel: enabling interrupts\n");
     __asm__ volatile ("sti");

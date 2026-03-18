@@ -6,10 +6,13 @@
 #include "io.h"
 #include "pic.h"
 #include "serial.h"
+#include "task.h"
 
 #define PIT_CHANNEL0_DATA 0x40
 #define PIT_COMMAND       0x43
 #define PIT_BASE_FREQ     1193182
+
+#define SCHEDULE_INTERVAL 10  /* context switch every 10 ticks (100 ms at 100 Hz) */
 
 static volatile uint64_t tick_count = 0;
 static uint32_t configured_frequency = 0;
@@ -22,6 +25,16 @@ static void pit_irq_handler(struct interrupt_frame *frame) {
         serial_write("[pit] tick=");
         serial_write_dec_u64(tick_count);
         serial_write("\n");
+    }
+
+    if (tick_count % SCHEDULE_INTERVAL == 0) {
+        /*
+         * Send EOI before schedule() — if schedule() switches to another
+         * task, control won't return here until this task is switched back.
+         * Without early EOI, the timer would stop firing.
+         */
+        pic_eoi(0);
+        schedule();
     }
 }
 
