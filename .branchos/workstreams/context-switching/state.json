@@ -1,7 +1,19 @@
 {
   "schemaVersion": 3,
-  "status": "created",
+  "status": "active",
   "tasks": [],
-  "currentPhase": 0,
-  "phases": []
+  "currentPhase": 1,
+  "phases": [
+    {
+      "number": 1,
+      "status": "active",
+      "discuss": {
+        "status": "complete",
+        "createdAt": "2026-03-18T02:20:00.000Z",
+        "updatedAt": "2026-03-18T02:20:00.000Z"
+      },
+      "plan": { "status": "not-started" },
+      "execute": { "status": "not-started" }
+    }
+  ]
 }
