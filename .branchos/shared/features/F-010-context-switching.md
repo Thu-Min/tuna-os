@@ -1,11 +1,11 @@
 ---
 id: F-010
 title: Context switching
-status: unassigned
+status: in-progress
 milestone: M3
 branch: feature/context-switching
 issue: 10
-workstream: null
+workstream: context-switching
 ---
 
 Implement the low-level context switch mechanism that saves one thread's register state and restores another's, enabling the kernel to multiplex the CPU between kernel threads.

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "context-switching",
+  "branch": "feature/context-switching",
+  "status": "active",
+  "createdAt": "2026-03-18T02:17:28.466Z",
+  "updatedAt": "2026-03-18T02:17:28.466Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 10,
+  "featureId": "F-010"
+}
