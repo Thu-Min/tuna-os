@@ -1,6 +1,6 @@
 ---
-generated: 2026-03-15T06:10:00Z
-commit: 6bc7c277cbf0bfc239f249c8c50b112f8907e9e5
+generated: 2026-03-17T03:45:00Z
+commit: 011dba525df1117917cb24fce38283888cc4f393
 generator: branchos/map-codebase
 ---
 
@@ -10,7 +10,7 @@ This is a bare-metal OS kernel with no package manager dependencies. All tooling
 
 ## Build Toolchain
 
-- **x86_64-elf-gcc**: Cross-compiler targeting x86_64 ELF — compiles freestanding C and assembly
+- **x86_64-elf-gcc**: Cross-compiler targeting x86_64 ELF — compiles freestanding C (C11) and assembly
 - **x86_64-elf-binutils** (includes `x86_64-elf-ld`): Cross-linker and binary utilities
 - **GNU Make**: Build orchestration via Makefiles
 

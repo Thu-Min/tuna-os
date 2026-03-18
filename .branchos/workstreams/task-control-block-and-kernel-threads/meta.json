@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "task-control-block-and-kernel-threads",
+  "branch": "feature/task-control-block-and-kernel-threads",
+  "status": "active",
+  "createdAt": "2026-03-17T13:07:39.910Z",
+  "updatedAt": "2026-03-17T13:07:39.910Z",
+  "assignee": "thumin-dev",
+  "issueNumber": null,
+  "featureId": "F-009"
+}

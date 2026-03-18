@@ -1,11 +1,11 @@
 ---
 id: F-009
 title: Task control block and kernel threads
-status: unassigned
+status: in-progress
 milestone: M3
 branch: feature/task-control-block
 issue: 9
-workstream: null
+workstream: task-control-block-and-kernel-threads
 ---
 
 Define the task control block (TCB) structure for representing kernel threads, including saved register state, kernel stack, and task metadata. Create and destroy kernel threads.
