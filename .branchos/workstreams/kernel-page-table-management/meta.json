@@ -2,9 +2,9 @@
   "schemaVersion": 3,
   "workstreamId": "kernel-page-table-management",
   "branch": "feature/kernel-page-table-management",
-  "status": "active",
+  "status": "archived",
   "createdAt": "2026-03-17T03:28:30.984Z",
-  "updatedAt": "2026-03-17T03:28:30.984Z",
+  "updatedAt": "2026-03-18T02:11:25.951Z",
   "assignee": "thumin-dev",
   "issueNumber": null,
   "featureId": "F-007"
