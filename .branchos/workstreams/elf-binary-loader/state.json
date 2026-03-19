@@ -12,8 +12,13 @@
         "createdAt": "2026-03-19T03:10:00.000Z",
         "updatedAt": "2026-03-19T03:10:00.000Z"
       },
-      "plan": { "status": "not-started" },
-      "execute": { "status": "not-started" }
+      "plan": {
+        "status": "complete",
+        "createdAt": "2026-03-19T03:15:00.000Z",
+        "updatedAt": "2026-03-19T03:15:00.000Z"
+      },
+      "execute": { "status": "not-started" },
+      "planBaseline": "bf70ee5d4c7f78abeeb6a3a77deda1dc1b519c4b"
     }
   ]
 }
