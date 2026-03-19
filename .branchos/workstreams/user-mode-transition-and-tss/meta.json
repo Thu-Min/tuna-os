@@ -2,9 +2,9 @@
   "schemaVersion": 3,
   "workstreamId": "user-mode-transition-and-tss",
   "branch": "feature/user-mode-transition-and-tss",
-  "status": "active",
+  "status": "archived",
   "createdAt": "2026-03-19T02:10:33.938Z",
-  "updatedAt": "2026-03-19T02:10:33.938Z",
+  "updatedAt": "2026-03-19T02:46:23.051Z",
   "assignee": "thumin-dev",
   "issueNumber": 12,
   "featureId": "F-012"
