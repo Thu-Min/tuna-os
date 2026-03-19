@@ -2,9 +2,9 @@
   "schemaVersion": 3,
   "workstreamId": "round-robin-scheduler",
   "branch": "feature/round-robin-scheduler",
-  "status": "active",
+  "status": "archived",
   "createdAt": "2026-03-19T01:21:13.706Z",
-  "updatedAt": "2026-03-19T01:21:13.706Z",
+  "updatedAt": "2026-03-19T02:08:49.618Z",
   "assignee": "thumin-dev",
   "issueNumber": 11,
   "featureId": "F-011"
