@@ -31,14 +31,17 @@ QEMU_EFI_FLAGS = -machine q35,accel=tcg \
 				 -drive if=pflash,format=raw,file=$(QEMU_EFI_VARS) \
 				 $(QEMU_COMMON_FLAGS)
 
-SRCS_C  := src/kernel.c src/serial.c src/gdt.c src/idt.c src/pic.c src/pit.c src/multiboot2.c src/pmm.c src/vmm.c src/kheap.c src/task.c src/tss.c src/usermode.c src/syscall.c
-SRCS_S  := src/boot.S src/gdt_flush.S src/interrupts.S src/switch.S
+SRCS_C  := src/kernel.c src/serial.c src/gdt.c src/idt.c src/pic.c src/pit.c src/multiboot2.c src/pmm.c src/vmm.c src/kheap.c src/task.c src/tss.c src/usermode.c src/syscall.c src/elf.c
+SRCS_S  := src/boot.S src/gdt_flush.S src/interrupts.S src/switch.S src/user_programs.S
 OBJS    := $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS_C)) \
 		   $(patsubst src/%.S,$(BUILD)/%.o,$(SRCS_S))
 
-.PHONY: all clean iso run run-bios debug debug-bios toolchain-check run-check efi-check
+.PHONY: all clean iso run run-bios debug debug-bios toolchain-check run-check efi-check user-programs
 
 all: toolchain-check $(KERNEL)
+
+user-programs:
+	$(MAKE) -C ../user
 
 toolchain-check:
 	@missing=0; \
@@ -72,6 +75,9 @@ $(BUILD)/%.o: src/%.c | $(BUILD)
 
 $(BUILD)/%.o: src/%.S | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+# user_programs.S depends on the user binary via .incbin
+$(BUILD)/user_programs.o: user-programs
 
 $(KERNEL): $(OBJS) linker.ld
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $@
@@ -122,3 +128,4 @@ debug-bios: iso run-check
 	$(QEMU) $(QEMU_BIOS_FLAGS) -s -S
 clean:
 	rm -rf $(BUILD) $(ISO_DIR)
+	$(MAKE) -C ../user clean

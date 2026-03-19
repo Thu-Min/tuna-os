@@ -1,3 +1,4 @@
+#include "elf.h"
 #include "gdt.h"
 #include "idt.h"
 #include "kheap.h"
@@ -110,10 +111,22 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing syscalls...\n");
     syscall_init();
 
-    /* User-mode test — drops to ring 3, tests syscalls, then halts */
-    serial_write("kernel: testing user mode + syscalls...\n");
-    usermode_test();
-    /* Should not reach here — GPF handler halts */
+    /* Test invalid ELF (AC-4) */
+    serial_write("kernel: testing invalid ELF...\n");
+    {
+        const char bad_elf[] = "not an elf";
+        uint64_t result = elf_load(bad_elf, sizeof(bad_elf));
+        if (result == 0)
+            serial_write("kernel: invalid ELF correctly rejected\n");
+    }
+
+    /* Load and run embedded ELF binary */
+    serial_write("kernel: loading user ELF binary...\n");
+    extern const char _binary_hello_elf_start[];
+    extern const char _binary_hello_elf_end[];
+    uint64_t elf_size = (uint64_t)(_binary_hello_elf_end - _binary_hello_elf_start);
+    usermode_exec_elf(_binary_hello_elf_start, elf_size);
+    /* Should not reach here — user program halts via GPF */
 
     serial_write("kernel: initializing pit...\n");
     pit_init(100);
