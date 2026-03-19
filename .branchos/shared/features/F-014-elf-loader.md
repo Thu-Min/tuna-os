@@ -1,11 +1,11 @@
 ---
 id: F-014
 title: ELF binary loader
-status: unassigned
+status: in-progress
 milestone: M4
 branch: feature/elf-loader
 issue: 14
-workstream: null
+workstream: elf-binary-loader
 ---
 
 Parse and load ELF64 binaries into user-mode virtual address space, set up a user stack, and jump to the ELF entry point in ring 3.

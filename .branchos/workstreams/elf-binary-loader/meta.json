@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "elf-binary-loader",
+  "branch": "feature/elf-binary-loader",
+  "status": "active",
+  "createdAt": "2026-03-19T03:32:22.399Z",
+  "updatedAt": "2026-03-19T03:32:22.399Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 14,
+  "featureId": "F-014"
+}
