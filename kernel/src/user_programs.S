@@ -1,6 +1,5 @@
 /*
  * Embed user-mode ELF binaries into the kernel image.
- * The assembler .incbin directive includes the raw file bytes.
  */
 .section .rodata
 
@@ -15,3 +14,15 @@ _binary_hello_elf_end:
 .align 8
 _binary_hello_elf_size:
     .quad _binary_hello_elf_end - _binary_hello_elf_start
+
+.global _binary_shell_elf_start
+.global _binary_shell_elf_end
+.global _binary_shell_elf_size
+
+_binary_shell_elf_start:
+    .incbin "../user/build/shell.elf"
+_binary_shell_elf_end:
+
+.align 8
+_binary_shell_elf_size:
+    .quad _binary_shell_elf_end - _binary_shell_elf_start

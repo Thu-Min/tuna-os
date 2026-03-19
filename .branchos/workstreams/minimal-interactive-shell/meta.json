@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "minimal-interactive-shell",
+  "branch": "feature/minimal-interactive-shell",
+  "status": "active",
+  "createdAt": "2026-03-19T03:48:52.193Z",
+  "updatedAt": "2026-03-19T03:48:52.193Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 16,
+  "featureId": "F-016"
+}

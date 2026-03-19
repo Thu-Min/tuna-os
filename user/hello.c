@@ -5,7 +5,9 @@
 
 #include <stdint.h>
 
+#define SYS_READ  0
 #define SYS_WRITE 1
+#define SYS_EXIT  4
 
 static int64_t sys_write(const char *buf, uint64_t len) {
     int64_t ret;
@@ -20,27 +22,17 @@ static int64_t sys_write(const char *buf, uint64_t len) {
     return ret;
 }
 
-static int64_t sys_invalid(void) {
-    int64_t ret;
+static void sys_exit(int64_t code) {
     __asm__ volatile (
         "int $0x80"
-        : "=a"(ret)
-        : "a"((uint64_t)999)
+        :
+        : "a"((uint64_t)SYS_EXIT),
+          "D"((uint64_t)code)
         : "rcx", "r11", "memory"
     );
-    return ret;
 }
 
 void _start(void) {
     sys_write("Hello from ELF!\n", 16);
-
-    /* Test invalid syscall — should return -1 */
-    sys_invalid();
-
-    sys_write("ELF test ok\n", 12);
-
-    /* Halt — cli triggers GPF from ring 3 */
-    __asm__ volatile ("cli");
-    for (;;)
-        __asm__ volatile ("hlt");
+    sys_exit(0);
 }

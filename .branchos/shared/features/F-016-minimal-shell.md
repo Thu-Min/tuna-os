@@ -1,11 +1,11 @@
 ---
 id: F-016
 title: Minimal interactive shell
-status: unassigned
+status: in-progress
 milestone: M4
 branch: feature/minimal-shell
 issue: 16
-workstream: null
+workstream: minimal-interactive-shell
 ---
 
 Implement a minimal command-line shell as the first user-mode program, capable of reading input, parsing commands, and executing built-in operations like listing files and running programs from the ramfs.

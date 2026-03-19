@@ -97,6 +97,7 @@ static void load_segment(const uint8_t *image, const Elf64_Phdr *phdr) {
         }
 
         vmm_map_page(page, frame, flags);
+        __asm__ volatile ("invlpg (%0)" : : "r"(page) : "memory");
     }
 }
 

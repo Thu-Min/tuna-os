@@ -16,29 +16,6 @@
 
 #define BREAKPOINT_SELF_TEST 1
 
-static void test_task_a(void) {
-    for (;;) {
-        serial_write("[A] ");
-        for (volatile int i = 0; i < 500000; i++);
-    }
-}
-
-static void test_task_b(void) {
-    for (int n = 0; n < 20; n++) {
-        serial_write("[B] ");
-        for (volatile int i = 0; i < 500000; i++);
-    }
-    serial_write("[B done]\n");
-    /* returns → task_trampoline calls task_exit() */
-}
-
-static void test_task_c(void) {
-    for (;;) {
-        serial_write("[C] ");
-        for (volatile int i = 0; i < 500000; i++);
-    }
-}
-
 void kernel_main(uint64_t multiboot2_addr) {
     serial_init();
     serial_write("kernel: hello from tuna os!\n");
@@ -116,50 +93,28 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing ramfs...\n");
     ramfs_init();
 
-    /* List empty directory (AC-1) */
-    ramfs_list();
-
-    /* Store embedded ELF in ramfs */
     extern const char _binary_hello_elf_start[];
     extern const char _binary_hello_elf_end[];
-    uint64_t elf_size = (uint64_t)(_binary_hello_elf_end - _binary_hello_elf_start);
-    ramfs_create("hello.elf", _binary_hello_elf_start, elf_size);
+    uint64_t hello_size = (uint64_t)(_binary_hello_elf_end - _binary_hello_elf_start);
+    ramfs_create("hello.elf", _binary_hello_elf_start, hello_size);
 
-    /* List files after creation (AC-3) */
+    extern const char _binary_shell_elf_start[];
+    extern const char _binary_shell_elf_end[];
+    uint64_t shell_size = (uint64_t)(_binary_shell_elf_end - _binary_shell_elf_start);
+    ramfs_create("shell.elf", _binary_shell_elf_start, shell_size);
+
     ramfs_list();
 
-    /* Test not-found (AC-4) */
-    const struct ramfs_file *missing = ramfs_find("nonexistent");
-    if (!missing)
-        serial_write("kernel: ramfs_find(\"nonexistent\") correctly returned NULL\n");
+    /* Tell syscall module where the shell ELF is (for re-loading after exec) */
+    const struct ramfs_file *shell_file = ramfs_find("shell.elf");
+    if (shell_file)
+        syscall_set_shell_elf(shell_file->data, shell_file->size);
 
-    /* Load user program from ramfs (AC-2) */
-    const struct ramfs_file *hello = ramfs_find("hello.elf");
-    if (hello) {
-        serial_write("kernel: loading '");
-        serial_write(hello->name);
-        serial_write("' from ramfs...\n");
-        usermode_exec_elf(hello->data, hello->size);
-    }
-    /* Should not reach here — user program halts via GPF */
+    /* Boot into shell */
+    serial_write("kernel: launching shell...\n");
+    usermode_exec_elf(shell_file->data, shell_file->size);
+    /* Should not reach here */
 
-    serial_write("kernel: initializing pit...\n");
-    pit_init(100);
-    serial_write("kernel: pit ready\n");
-
-    serial_write("kernel: initializing tasks...\n");
-    task_init();
-    task_create(test_task_a);
-    task_create(test_task_b);
-    task_create(test_task_c);
-    serial_write("kernel: tasks ready\n");
-
-    serial_write("kernel: enabling interrupts\n");
-    __asm__ volatile ("sti");
-
-    serial_write("kernel: idle loop\n");
-
-    for (;;) {
+    for (;;)
         __asm__ volatile ("hlt");
-    }
 }
