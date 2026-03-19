@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "ram-based-filesystem",
+  "branch": "feature/ram-based-filesystem",
+  "status": "active",
+  "createdAt": "2026-03-19T03:42:34.248Z",
+  "updatedAt": "2026-03-19T03:42:34.248Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 15,
+  "featureId": "F-015"
+}
