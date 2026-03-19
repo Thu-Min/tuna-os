@@ -6,13 +6,16 @@ BUILD   := build
 
 .PHONY: all clean
 
-all: $(BUILD)/hello.elf
+all: $(BUILD)/hello.elf $(BUILD)/shell.elf
 
 $(BUILD):
 	mkdir -p $(BUILD)
 
 $(BUILD)/hello.elf: hello.c link.ld | $(BUILD)
 	$(CC) $(CFLAGS) -T link.ld hello.c -o $@
+
+$(BUILD)/shell.elf: shell.c link.ld | $(BUILD)
+	$(CC) $(CFLAGS) -T link.ld shell.c -o $@
 
 clean:
 	rm -rf $(BUILD)
