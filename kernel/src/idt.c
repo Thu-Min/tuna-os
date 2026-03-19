@@ -5,13 +5,16 @@
 
 #include "pic.h"
 #include "serial.h"
+#include "syscall.h"
 
 #define IDT_ENTRIES 256
 #define EXCEPTION_COUNT 32
 #define ISR_STUB_COUNT 48
 #define IRQ_BASE 32
 #define KERNEL_CODE_SELECTOR 0x08
-#define IDT_GATE_INTERRUPT 0x8E
+#define IDT_GATE_INTERRUPT  0x8E
+#define IDT_GATE_TRAP_USER  0xEF  /* present, DPL=3, trap gate */
+#define SYSCALL_VECTOR       128
 
 struct idt_entry {
     uint16_t offset_low;
@@ -32,6 +35,7 @@ static struct idt_entry idt[IDT_ENTRIES];
 static irq_handler_t irq_handlers[16];
 
 extern void (*isr_stub_table[ISR_STUB_COUNT])(void);
+extern void isr_stub_128(void);
 
 static const char *const exception_names[EXCEPTION_COUNT] = {
     "Divide Error",
@@ -94,6 +98,9 @@ void idt_init(void) {
         idt_set_gate((uint8_t)i, isr_stub_table[i], IDT_GATE_INTERRUPT);
     }
 
+    /* Syscall vector 0x80 — DPL=3 trap gate so ring 3 can invoke it */
+    idt_set_gate(SYSCALL_VECTOR, isr_stub_128, IDT_GATE_TRAP_USER);
+
     idtr.limit = (uint16_t)(sizeof(idt) - 1);
     idtr.base = (uint64_t)idt;
     lidt(&idtr);
@@ -106,6 +113,12 @@ void irq_register_handler(uint8_t irq, irq_handler_t handler) {
 }
 
 void isr_dispatch(struct interrupt_frame *frame) {
+    // Syscall dispatch (vector 128 = 0x80).
+    if (frame->vector == SYSCALL_VECTOR) {
+        syscall_dispatch(frame);
+        return;
+    }
+
     // IRQ dispatch (vectors 32-47).
     if (frame->vector >= IRQ_BASE && frame->vector < IRQ_BASE + 16) {
         uint8_t irq = (uint8_t)(frame->vector - IRQ_BASE);

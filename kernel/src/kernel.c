@@ -7,6 +7,7 @@
 #include "pit.h"
 #include "serial.h"
 #include "task.h"
+#include "syscall.h"
 #include "tss.h"
 #include "usermode.h"
 #include "vmm.h"
@@ -106,8 +107,11 @@ void kernel_main(uint64_t multiboot2_addr) {
     pic_init();
     serial_write("kernel: pic ready\n");
 
-    /* User-mode test — drops to ring 3, triggers GPF, halts */
-    serial_write("kernel: testing user mode transition...\n");
+    serial_write("kernel: initializing syscalls...\n");
+    syscall_init();
+
+    /* User-mode test — drops to ring 3, tests syscalls, then halts */
+    serial_write("kernel: testing user mode + syscalls...\n");
     usermode_test();
     /* Should not reach here — GPF handler halts */
 
