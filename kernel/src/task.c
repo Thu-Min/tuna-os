@@ -159,6 +159,17 @@ void schedule(void) {
     if (!current_task || !current_task->next)
         return;
 
+    /* Reap dead tasks (but never the current task — it's still on its stack) */
+    {
+        struct task *t = current_task->next;
+        while (t != current_task) {
+            struct task *save_next = t->next;
+            if (t->state == TASK_DEAD)
+                task_destroy(t);
+            t = save_next;
+        }
+    }
+
     /* Find next runnable task (round-robin, skip DEAD tasks) */
     struct task *next = current_task->next;
     struct task *start = next;
