@@ -29,15 +29,21 @@ static uint64_t *alloc_table(void) {
 void vmm_map_page(uint64_t virt, uint64_t phys, uint32_t flags) {
     uint64_t *cur_pml4 = pml4;
 
+    /* Intermediate entries must carry USER if the leaf does (x86 AND logic). */
+    uint64_t intermediate_flags = VMM_FLAG_PRESENT | VMM_FLAG_WRITE;
+    if (flags & VMM_FLAG_USER)
+        intermediate_flags |= VMM_FLAG_USER;
+
     /* PML4 → PDPT */
     uint32_t pml4_idx = PML4_INDEX(virt);
     uint64_t *pdpt;
     if (cur_pml4[pml4_idx] & VMM_FLAG_PRESENT) {
         pdpt = (uint64_t *)(uintptr_t)(cur_pml4[pml4_idx] & PAGE_MASK);
+        cur_pml4[pml4_idx] |= intermediate_flags;
     } else {
         pdpt = alloc_table();
         if (!pdpt) return;
-        cur_pml4[pml4_idx] = (uint64_t)(uintptr_t)pdpt | VMM_FLAG_PRESENT | VMM_FLAG_WRITE;
+        cur_pml4[pml4_idx] = (uint64_t)(uintptr_t)pdpt | intermediate_flags;
     }
 
     /* PDPT → PD */
@@ -45,10 +51,11 @@ void vmm_map_page(uint64_t virt, uint64_t phys, uint32_t flags) {
     uint64_t *pd;
     if (pdpt[pdpt_idx] & VMM_FLAG_PRESENT) {
         pd = (uint64_t *)(uintptr_t)(pdpt[pdpt_idx] & PAGE_MASK);
+        pdpt[pdpt_idx] |= intermediate_flags;
     } else {
         pd = alloc_table();
         if (!pd) return;
-        pdpt[pdpt_idx] = (uint64_t)(uintptr_t)pd | VMM_FLAG_PRESENT | VMM_FLAG_WRITE;
+        pdpt[pdpt_idx] = (uint64_t)(uintptr_t)pd | intermediate_flags;
     }
 
     /* PD → PT */
@@ -56,10 +63,11 @@ void vmm_map_page(uint64_t virt, uint64_t phys, uint32_t flags) {
     uint64_t *pt;
     if (pd[pd_idx] & VMM_FLAG_PRESENT) {
         pt = (uint64_t *)(uintptr_t)(pd[pd_idx] & PAGE_MASK);
+        pd[pd_idx] |= intermediate_flags;
     } else {
         pt = alloc_table();
         if (!pt) return;
-        pd[pd_idx] = (uint64_t)(uintptr_t)pt | VMM_FLAG_PRESENT | VMM_FLAG_WRITE;
+        pd[pd_idx] = (uint64_t)(uintptr_t)pt | intermediate_flags;
     }
 
     /* PT → page */
