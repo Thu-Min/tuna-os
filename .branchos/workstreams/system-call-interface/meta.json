@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 3,
+  "workstreamId": "system-call-interface",
+  "branch": "feature/system-call-interface",
+  "status": "active",
+  "createdAt": "2026-03-19T03:15:00.974Z",
+  "updatedAt": "2026-03-19T03:15:00.974Z",
+  "assignee": "thumin-dev",
+  "issueNumber": 13,
+  "featureId": "F-013"
+}

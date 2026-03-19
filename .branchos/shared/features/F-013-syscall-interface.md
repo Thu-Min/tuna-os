@@ -1,11 +1,11 @@
 ---
 id: F-013
 title: System call interface
-status: unassigned
+status: in-progress
 milestone: M4
 branch: feature/syscall-interface
 issue: 13
-workstream: null
+workstream: system-call-interface
 ---
 
 Implement a system call mechanism using software interrupts or SYSCALL/SYSRET that allows user-mode code to request kernel services through a numbered dispatch table.
