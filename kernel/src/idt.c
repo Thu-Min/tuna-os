@@ -141,6 +141,15 @@ void isr_dispatch(struct interrupt_frame *frame) {
         return;
     }
 
+    if (frame->vector == 13 && (frame->cs & 3) == 3) {
+        serial_write("[exception] GPF from ring 3 at rip=");
+        serial_write_hex_u64(frame->rip);
+        serial_write(" — privilege enforcement confirmed\n");
+        serial_write("[exception] halting.\n");
+        for (;;)
+            __asm__ volatile ("cli; hlt");
+    }
+
     serial_write("[exception] fatal exception, halting.\n");
     for (;;) {
         __asm__ volatile ("cli; hlt");

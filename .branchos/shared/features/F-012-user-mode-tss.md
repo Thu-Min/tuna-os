@@ -1,11 +1,11 @@
 ---
 id: F-012
 title: User mode transition and TSS
-status: unassigned
+status: in-progress
 milestone: M3
 branch: feature/user-mode-tss
 issue: 12
-workstream: null
+workstream: user-mode-transition-and-tss
 ---
 
 Set up user-mode (ring 3) GDT segments, configure a Task State Segment (TSS) for kernel stack switching on privilege transitions, and execute code in ring 3.

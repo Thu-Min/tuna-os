@@ -7,6 +7,8 @@
 #include "pit.h"
 #include "serial.h"
 #include "task.h"
+#include "tss.h"
+#include "usermode.h"
 #include "vmm.h"
 
 #define BREAKPOINT_SELF_TEST 1
@@ -83,6 +85,14 @@ void kernel_main(uint64_t multiboot2_addr) {
     gdt_init();
     serial_write("kernel: gdt ready\n");
 
+    serial_write("kernel: initializing tss...\n");
+    /* Use a temporary kernel stack address for RSP0 — the boot stack. */
+    extern char _kernel_end[];
+    uint64_t kernel_stack_top = ((uint64_t)(uintptr_t)_kernel_end + 0x4000) & ~0xFULL;
+    tss_init(kernel_stack_top);
+    gdt_load_tss((uint64_t)(uintptr_t)tss_get(), sizeof(struct tss) - 1);
+    serial_write("kernel: tss ready\n");
+
     serial_write("kernel: initializing idt...\n");
     idt_init();
     serial_write("kernel: idt ready\n");
@@ -95,6 +105,11 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing pic...\n");
     pic_init();
     serial_write("kernel: pic ready\n");
+
+    /* User-mode test — drops to ring 3, triggers GPF, halts */
+    serial_write("kernel: testing user mode transition...\n");
+    usermode_test();
+    /* Should not reach here — GPF handler halts */
 
     serial_write("kernel: initializing pit...\n");
     pit_init(100);

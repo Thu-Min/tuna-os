@@ -23,6 +23,8 @@ struct interrupt_frame {
     uint64_t rip;
     uint64_t cs;
     uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
 } __attribute__((packed));
 
 typedef void (*irq_handler_t)(struct interrupt_frame *frame);
