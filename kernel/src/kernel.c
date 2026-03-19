@@ -1,5 +1,6 @@
 #include "elf.h"
 #include "gdt.h"
+#include "ramfs.h"
 #include "idt.h"
 #include "kheap.h"
 #include "multiboot2.h"
@@ -111,21 +112,35 @@ void kernel_main(uint64_t multiboot2_addr) {
     serial_write("kernel: initializing syscalls...\n");
     syscall_init();
 
-    /* Test invalid ELF (AC-4) */
-    serial_write("kernel: testing invalid ELF...\n");
-    {
-        const char bad_elf[] = "not an elf";
-        uint64_t result = elf_load(bad_elf, sizeof(bad_elf));
-        if (result == 0)
-            serial_write("kernel: invalid ELF correctly rejected\n");
-    }
+    /* Initialize ramfs and populate with embedded binaries */
+    serial_write("kernel: initializing ramfs...\n");
+    ramfs_init();
 
-    /* Load and run embedded ELF binary */
-    serial_write("kernel: loading user ELF binary...\n");
+    /* List empty directory (AC-1) */
+    ramfs_list();
+
+    /* Store embedded ELF in ramfs */
     extern const char _binary_hello_elf_start[];
     extern const char _binary_hello_elf_end[];
     uint64_t elf_size = (uint64_t)(_binary_hello_elf_end - _binary_hello_elf_start);
-    usermode_exec_elf(_binary_hello_elf_start, elf_size);
+    ramfs_create("hello.elf", _binary_hello_elf_start, elf_size);
+
+    /* List files after creation (AC-3) */
+    ramfs_list();
+
+    /* Test not-found (AC-4) */
+    const struct ramfs_file *missing = ramfs_find("nonexistent");
+    if (!missing)
+        serial_write("kernel: ramfs_find(\"nonexistent\") correctly returned NULL\n");
+
+    /* Load user program from ramfs (AC-2) */
+    const struct ramfs_file *hello = ramfs_find("hello.elf");
+    if (hello) {
+        serial_write("kernel: loading '");
+        serial_write(hello->name);
+        serial_write("' from ramfs...\n");
+        usermode_exec_elf(hello->data, hello->size);
+    }
     /* Should not reach here — user program halts via GPF */
 
     serial_write("kernel: initializing pit...\n");
