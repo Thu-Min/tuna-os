@@ -6,6 +6,20 @@ static uint64_t next_id;
 static struct task *current_task;
 static struct task *task_list;
 
+/*
+ * Trampoline for newly created tasks. When switch_to rets into a fresh task,
+ * interrupts are disabled (we came from a timer IRQ that cleared IF).
+ * The real entry function pointer is passed via R12 (callee-saved register,
+ * set by task_create in the initial stack frame).
+ */
+static void task_trampoline(void) {
+    void (*entry)(void);
+    __asm__ volatile ("movq %%r12, %0" : "=r"(entry));
+    __asm__ volatile ("sti");
+    entry();
+    task_exit();
+}
+
 void task_init(void) {
     /* Wrap the current kernel_main execution as task 0 (boot/idle task) */
     struct task *boot = kmalloc(sizeof(struct task));
@@ -48,39 +62,32 @@ struct task *task_create(void (*entry)(void)) {
 
     /*
      * Set up the initial stack so that the context switch can
-     * pop callee-saved registers and ret into the entry function.
+     * pop callee-saved registers and ret into task_trampoline.
      *
-     * Stack layout (growing downward, top of stack at lowest address):
+     * switch.S pushes in order: RBX, RBP, R12, R13, R14, R15
+     * so the stack from LOW to HIGH is: R15, R14, R13, R12, RBP, RBX, ret
+     * and pops reverse: R15, R14, R13, R12, RBP, RBX, ret
      *
      *   [high address]  stack + TASK_STACK_SIZE
      *                   ...
-     *   rsp + 56:       task_exit   (return address for when entry() returns)
-     *   rsp + 48:       entry       (ret target for context switch)
-     *   rsp + 40:       0           (R15)
-     *   rsp + 32:       0           (R14)
-     *   rsp + 24:       0           (R13)
-     *   rsp + 16:       0           (R12)
-     *   rsp + 8:        0           (RBP)
-     *   rsp + 0:        0           (RBX)
+     *   rsp + 48:       task_trampoline  (ret target for switch_to)
+     *   rsp + 40:       0           (RBX — popped last)
+     *   rsp + 32:       0           (RBP)
+     *   rsp + 24:       entry       (R12 — passed to trampoline)
+     *   rsp + 16:       0           (R13)
+     *   rsp + 8:        0           (R14)
+     *   rsp + 0:        0           (R15 — popped first)
      *   [low address]
-     *
-     * The context switch does:
-     *   pop rbx, pop rbp, pop r12, pop r13, pop r14, pop r15, ret
-     * which pops 6 registers then rets into entry().
-     * When entry() returns, it rets into task_exit().
      */
     uint64_t *sp = (uint64_t *)(stack + TASK_STACK_SIZE);
 
-    /* Align to 16 bytes (sp is naturally aligned since TASK_STACK_SIZE is 8192) */
-
-    *(--sp) = (uint64_t)(uintptr_t)task_exit;  /* return address for entry() */
-    *(--sp) = (uint64_t)(uintptr_t)entry;       /* ret target for switch_to */
-    *(--sp) = 0;  /* R15 */
-    *(--sp) = 0;  /* R14 */
-    *(--sp) = 0;  /* R13 */
-    *(--sp) = 0;  /* R12 */
-    *(--sp) = 0;  /* RBP */
-    *(--sp) = 0;  /* RBX */
+    *(--sp) = (uint64_t)(uintptr_t)task_trampoline;  /* ret target for switch_to */
+    *(--sp) = 0;                                       /* RBX */
+    *(--sp) = 0;                                       /* RBP */
+    *(--sp) = (uint64_t)(uintptr_t)entry;              /* R12 — entry function */
+    *(--sp) = 0;                                       /* R13 */
+    *(--sp) = 0;                                       /* R14 */
+    *(--sp) = 0;                                       /* R15 */
 
     t->rsp = (uint64_t)(uintptr_t)sp;
 
@@ -140,9 +147,44 @@ void task_exit(void) {
 
     current_task->state = TASK_DEAD;
 
-    /* Halt until the scheduler reaps us (F-011) */
+    /* Yield so the scheduler picks the next runnable task */
+    schedule();
+
+    /* Should never reach here, but halt just in case */
     for (;;)
         __asm__ volatile ("hlt");
+}
+
+void schedule(void) {
+    if (!current_task || !current_task->next)
+        return;
+
+    /* Find next runnable task (round-robin, skip DEAD tasks) */
+    struct task *next = current_task->next;
+    struct task *start = next;
+    do {
+        if (next->state == TASK_READY)
+            break;
+        next = next->next;
+    } while (next != start);
+
+    /* No other runnable task found, or only current is alive */
+    if (next == current_task || next->state != TASK_READY)
+        return;
+
+    struct task *prev = current_task;
+
+    /* Transition states */
+    if (prev->state == TASK_RUNNING)
+        prev->state = TASK_READY;
+    current_task = next;
+    next->state = TASK_RUNNING;
+
+    switch_to(&prev->rsp, next->rsp);
+}
+
+void yield(void) {
+    schedule();
 }
 
 struct task *task_get_current(void) {
