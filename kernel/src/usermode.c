@@ -8,22 +8,87 @@
 #define USER_STACK_SIZE  VMM_PAGE_SIZE
 
 /*
- * User-mode test function.  Attempts a privileged instruction (cli)
- * which triggers #GP from ring 3, validating AC-4.
+ * User-mode test function.  Written entirely in assembly to avoid
+ * compiler-generated references to .rodata (which isn't USER-mapped).
  *
- * This function is copied to a USER-mapped page at runtime so the CPU
- * can fetch it at CPL=3.
+ * 1. Calls sys_write (syscall 1) to print "Hello from ring 3!\n" (AC-3)
+ * 2. Calls invalid syscall 999 to test error return (AC-4)
+ * 3. Calls sys_write to print "syscall test ok\n"
+ * 4. Executes cli to trigger GPF and halt
  */
-static void user_function(void) {
-    /* cli is privileged — will cause #GP(0) from ring 3 */
-    __asm__ volatile ("cli");
+static void __attribute__((naked)) user_function(void) {
+    __asm__ volatile (
+        /* Build "Hello from ring 3!\n" on stack (20 bytes, 8-byte aligned = 24) */
+        "subq $24, %%rsp\n\t"
+        "movb $'H', 0(%%rsp)\n\t"
+        "movb $'e', 1(%%rsp)\n\t"
+        "movb $'l', 2(%%rsp)\n\t"
+        "movb $'l', 3(%%rsp)\n\t"
+        "movb $'o', 4(%%rsp)\n\t"
+        "movb $' ', 5(%%rsp)\n\t"
+        "movb $'f', 6(%%rsp)\n\t"
+        "movb $'r', 7(%%rsp)\n\t"
+        "movb $'o', 8(%%rsp)\n\t"
+        "movb $'m', 9(%%rsp)\n\t"
+        "movb $' ', 10(%%rsp)\n\t"
+        "movb $'r', 11(%%rsp)\n\t"
+        "movb $'i', 12(%%rsp)\n\t"
+        "movb $'n', 13(%%rsp)\n\t"
+        "movb $'g', 14(%%rsp)\n\t"
+        "movb $' ', 15(%%rsp)\n\t"
+        "movb $'3', 16(%%rsp)\n\t"
+        "movb $'!', 17(%%rsp)\n\t"
+        "movb $'\\n', 18(%%rsp)\n\t"
 
-    /* Should never reach here */
-    for (;;)
-        __asm__ volatile ("hlt");
+        /* sys_write(rsp, 19) */
+        "movq $1, %%rax\n\t"       /* syscall 1 = sys_write */
+        "movq %%rsp, %%rdi\n\t"    /* buf = stack string */
+        "movq $19, %%rsi\n\t"      /* len = 19 */
+        "int $0x80\n\t"
+
+        "addq $24, %%rsp\n\t"
+
+        /* Test invalid syscall (number 999) — should return -1 */
+        "movq $999, %%rax\n\t"
+        "int $0x80\n\t"
+        /* rax now contains -1 (0xFFFFFFFFFFFFFFFF) */
+
+        /* Build "syscall test ok\n" on stack (16 bytes) */
+        "subq $16, %%rsp\n\t"
+        "movb $'s', 0(%%rsp)\n\t"
+        "movb $'y', 1(%%rsp)\n\t"
+        "movb $'s', 2(%%rsp)\n\t"
+        "movb $'c', 3(%%rsp)\n\t"
+        "movb $'a', 4(%%rsp)\n\t"
+        "movb $'l', 5(%%rsp)\n\t"
+        "movb $'l', 6(%%rsp)\n\t"
+        "movb $' ', 7(%%rsp)\n\t"
+        "movb $'t', 8(%%rsp)\n\t"
+        "movb $'e', 9(%%rsp)\n\t"
+        "movb $'s', 10(%%rsp)\n\t"
+        "movb $'t', 11(%%rsp)\n\t"
+        "movb $' ', 12(%%rsp)\n\t"
+        "movb $'o', 13(%%rsp)\n\t"
+        "movb $'k', 14(%%rsp)\n\t"
+        "movb $'\\n', 15(%%rsp)\n\t"
+
+        /* sys_write(rsp, 16) */
+        "movq $1, %%rax\n\t"
+        "movq %%rsp, %%rdi\n\t"
+        "movq $16, %%rsi\n\t"
+        "int $0x80\n\t"
+
+        "addq $16, %%rsp\n\t"
+
+        /* Done — cli triggers GPF from ring 3, halting */
+        "cli\n\t"
+        "1: hlt\n\t"
+        "jmp 1b\n\t"
+        ::: "memory"
+    );
 }
 
-/* End marker for memcpy sizing — placed right after user_function */
+/* End marker for page spanning check */
 static void user_function_end(void) {}
 
 void usermode_test(void) {
@@ -40,8 +105,7 @@ void usermode_test(void) {
 
     /*
      * Re-map the page containing user_function with the USER flag so
-     * CPL=3 can execute it.  The function lives in kernel .text which
-     * is already identity-mapped; we just add USER to that page.
+     * CPL=3 can execute it.
      */
     uint64_t fn_addr = (uint64_t)(uintptr_t)user_function;
     uint64_t fn_page = fn_addr & ~(uint64_t)0xFFF;
@@ -68,14 +132,6 @@ void usermode_test(void) {
 
     serial_write("[usermode] jumping to ring 3 via iretq\n");
 
-    /*
-     * Build IRETQ frame and jump to ring 3:
-     *   SS     = GDT_USER_DATA_RPL3 (0x1B)
-     *   RSP    = top of user stack
-     *   RFLAGS = 0x202 (IF set, reserved bit 1 set)
-     *   CS     = GDT_USER_CODE_RPL3 (0x23)
-     *   RIP    = user_function
-     */
     uint64_t user_ss     = GDT_USER_DATA_RPL3;
     uint64_t user_rsp    = USER_STACK_VADDR + USER_STACK_SIZE;
     uint64_t user_rflags = 0x202;
@@ -83,11 +139,11 @@ void usermode_test(void) {
     uint64_t user_rip    = fn_addr;
 
     __asm__ volatile (
-        "pushq %0\n\t"   /* SS */
-        "pushq %1\n\t"   /* RSP */
-        "pushq %2\n\t"   /* RFLAGS */
-        "pushq %3\n\t"   /* CS */
-        "pushq %4\n\t"   /* RIP */
+        "pushq %0\n\t"
+        "pushq %1\n\t"
+        "pushq %2\n\t"
+        "pushq %3\n\t"
+        "pushq %4\n\t"
         "iretq\n\t"
         :
         : "r"(user_ss), "r"(user_rsp), "r"(user_rflags),
@@ -95,7 +151,6 @@ void usermode_test(void) {
         : "memory"
     );
 
-    /* Should never reach here */
     for (;;)
         __asm__ volatile ("hlt");
 }

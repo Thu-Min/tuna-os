@@ -95,6 +95,9 @@ ISR_ERR   29
 ISR_ERR   30
 ISR_NOERR 31
 
+// Syscall stub (vector 128 = 0x80).
+ISR_NOERR 128
+
 // IRQ stubs (vectors 32-47).
 ISR_NOERR 32
 ISR_NOERR 33
