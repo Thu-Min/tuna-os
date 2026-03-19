@@ -1,11 +1,11 @@
 ---
 id: F-011
 title: Round-robin scheduler
-status: unassigned
+status: in-progress
 milestone: M3
 branch: feature/round-robin-scheduler
 issue: 11
-workstream: null
+workstream: round-robin-scheduler
 ---
 
 Implement a preemptive round-robin scheduler that uses the PIT timer interrupt to switch between ready kernel threads at each tick.

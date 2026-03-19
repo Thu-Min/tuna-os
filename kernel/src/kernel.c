@@ -19,8 +19,17 @@ static void test_task_a(void) {
 }
 
 static void test_task_b(void) {
-    for (;;) {
+    for (int n = 0; n < 20; n++) {
         serial_write("[B] ");
+        for (volatile int i = 0; i < 500000; i++);
+    }
+    serial_write("[B done]\n");
+    /* returns → task_trampoline calls task_exit() */
+}
+
+static void test_task_c(void) {
+    for (;;) {
+        serial_write("[C] ");
         for (volatile int i = 0; i < 500000; i++);
     }
 }
@@ -95,6 +104,7 @@ void kernel_main(uint64_t multiboot2_addr) {
     task_init();
     task_create(test_task_a);
     task_create(test_task_b);
+    task_create(test_task_c);
     serial_write("kernel: tasks ready\n");
 
     serial_write("kernel: enabling interrupts\n");
