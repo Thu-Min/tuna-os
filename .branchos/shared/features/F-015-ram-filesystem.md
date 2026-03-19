@@ -1,11 +1,11 @@
 ---
 id: F-015
 title: RAM-based filesystem
-status: unassigned
+status: in-progress
 milestone: M4
 branch: feature/ram-filesystem
 issue: 15
-workstream: null
+workstream: ram-based-filesystem
 ---
 
 Implement a simple in-memory filesystem (ramfs) that supports creating, reading, and listing files, providing the minimal file abstraction needed for loading user programs.
