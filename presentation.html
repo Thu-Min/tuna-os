@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Build an Operating System?</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+    <style>
+        :root {
+            --r-background-color: #0a0e17;
+            --r-main-color: #e2e8f0;
+            --r-heading-color: #f8fafc;
+            --r-link-color: #60a5fa;
+        }
+        .reveal {
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+        .reveal h1, .reveal h2, .reveal h3 {
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            text-transform: none;
+            font-weight: 700;
+        }
+        .reveal h1 { font-size: 2.2em; }
+        .reveal h2 { font-size: 1.6em; }
+        .reveal h3 { font-size: 1.2em; color: #94a3b8; }
+        .reveal p, .reveal li {
+            line-height: 1.6;
+        }
+        .reveal pre {
+            width: 100%;
+            font-size: 0.48em;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+        }
+        .reveal pre code {
+            max-height: 520px;
+            padding: 20px;
+        }
+        .accent { color: #60a5fa; }
+        .accent-green { color: #4ade80; }
+        .accent-yellow { color: #fbbf24; }
+        .accent-red { color: #f87171; }
+        .accent-purple { color: #c084fc; }
+        .dim { color: #64748b; }
+        .reveal .slide-number { font-size: 14px; color: #475569; }
+        .reveal section img {
+            border: none;
+            box-shadow: none;
+            background: none;
+        }
+        .phase-badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #60a5fa;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.6em;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .layer-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-top: 20px;
+        }
+        .layer {
+            padding: 14px 60px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            font-weight: 600;
+            width: 70%;
+            text-align: center;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            text-align: left;
+            font-size: 0.65em;
+            margin-top: 20px;
+        }
+        .feature-card {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+        .feature-card h4 {
+            margin: 0 0 8px 0;
+            color: #60a5fa;
+            font-size: 1.1em;
+        }
+        .feature-card p { margin: 0; color: #94a3b8; }
+        .arrow-down {
+            font-size: 1.2em;
+            color: #475569;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .two-col > div { text-align: left; }
+        ul.clean {
+            list-style: none;
+            padding-left: 0;
+        }
+        ul.clean li {
+            padding: 6px 0;
+            font-size: 0.75em;
+        }
+        ul.clean li::before {
+            content: '>';
+            color: #60a5fa;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .tuna-logo {
+            font-size: 3em;
+            margin-bottom: 0;
+        }
+        .analogy-box {
+            background: #111827;
+            border-left: 4px solid #60a5fa;
+            padding: 16px 24px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px auto;
+            max-width: 80%;
+            text-align: left;
+            font-size: 0.65em;
+            color: #cbd5e1;
+        }
+        .analogy-box .label {
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-bottom: 6px;
+        }
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: step;
+        }
+        .step-list li {
+            padding: 8px 0;
+            font-size: 0.7em;
+            counter-increment: step;
+        }
+        .step-list li::before {
+            content: counter(step);
+            background: #1e3a5f;
+            color: #60a5fa;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 24px;
+            font-size: 0.65em;
+            text-align: center;
+        }
+        .emoji-grid .item {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 20px 12px;
+        }
+        .emoji-grid .icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+        .emoji-grid .title {
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .emoji-grid .desc {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- TITLE -->
+<!-- ============================================================ -->
+<section>
+    <p class="tuna-logo">🐟</p>
+    <h1>How to Build an<br><span class="accent">Operating System</span>?</h1>
+    <h3>From a blank screen to a working kernel,<br>explained step by step</h3>
+    <p class="dim" style="font-size:0.5em; margin-top:40px;">
+        Built with <span class="accent">Tuna OS</span> — a learn-by-building OS project
+    </p>
+</section>
+
+<!-- ============================================================ -->
+<!-- AGENDA -->
+<!-- ============================================================ -->
+<section>
+    <h2>What we'll cover</h2>
+    <ul class="clean">
+        <li>What is an Operating System?</li>
+        <li>What is a kernel and why do we need one?</li>
+        <li>Step 1 — Booting: waking up the computer</li>
+        <li>Step 2 — Teaching the CPU the rules</li>
+        <li>Step 3 — Reacting to events (interrupts &amp; timer)</li>
+        <li>Step 4 — Managing memory</li>
+        <li>Step 5 — Running multiple programs</li>
+        <li>Step 6 — Letting programs talk to the kernel</li>
+        <li>Step 7 — Files and loading programs</li>
+        <li>Step 8 — Building a shell (command line)</li>
+        <li>Takeaways</li>
+    </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- WHAT IS AN OS -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <h2>What is an Operating System?</h2>
+        <p style="font-size:0.75em; color:#94a3b8; max-width:80%; margin:20px auto;">
+            An Operating System (OS) is the <span class="accent">software that runs your computer</span>.<br>
+            It starts when you press the power button and stays running the entire time.
+        </p>
+        <p style="font-size:0.75em; color:#94a3b8; max-width:80%; margin:20px auto;">
+            Every app you use — your browser, your text editor, your games —<br>
+            they all <span class="accent">depend on the OS</span> to work.
+        </p>
+    </section>
+
+    <section>
+        <h3>Examples of Operating Systems</h3>
+        <div class="emoji-grid">
+            <div class="item">
+                <div class="icon">🪟</div>
+                <div class="title">Windows</div>
+                <div class="desc">Most common on desktops and laptops</div>
+            </div>
+            <div class="item">
+                <div class="icon">🍎</div>
+                <div class="title">macOS</div>
+                <div class="desc">Apple's OS for Mac computers</div>
+            </div>
+            <div class="item">
+                <div class="icon">🐧</div>
+                <div class="title">Linux</div>
+                <div class="desc">Open source, powers most servers</div>
+            </div>
+            <div class="item">
+                <div class="icon">📱</div>
+                <div class="title">Android</div>
+                <div class="desc">Based on Linux, for phones</div>
+            </div>
+            <div class="item">
+                <div class="icon">📱</div>
+                <div class="title">iOS</div>
+                <div class="desc">Apple's OS for iPhones</div>
+            </div>
+            <div class="item">
+                <div class="icon">🐟</div>
+                <div class="title">Tuna OS</div>
+                <div class="desc">Ours! Built from scratch to learn</div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>What does an OS actually do?</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Manages hardware</h4>
+                <p>It talks to the CPU, RAM, keyboard, screen, and other devices so your apps don't have to.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Runs programs</h4>
+                <p>It loads apps into memory, gives them CPU time, and cleans up when they're done.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Manages memory</h4>
+                <p>It decides which program gets which chunk of RAM, and makes sure programs don't step on each other.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Provides services</h4>
+                <p>Reading files, printing text, getting keyboard input — the OS provides these so every app doesn't have to reinvent them.</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>Think of it like a building manager</h3>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>Imagine an office building. The <strong>building manager</strong> (the OS) handles electricity, water, elevators, and security.
+            The <strong>tenants</strong> (your apps) just show up and do their work — they don't need to know how the plumbing works.</p>
+            <p style="margin-top:12px;">Without the building manager, every tenant would need to generate their own electricity and dig their own well. That's what it would be like to run programs without an OS.</p>
+        </div>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- WHAT IS A KERNEL -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <h2>What is a Kernel?</h2>
+        <p style="font-size:0.75em; color:#94a3b8; max-width:80%; margin:20px auto;">
+            The <span class="accent">kernel</span> is the <span class="accent">core</span> of the operating system.<br>
+            It's the very first piece of software that runs after the computer starts up.
+        </p>
+        <p style="font-size:0.75em; color:#94a3b8; max-width:80%; margin:20px auto;">
+            It sits between your apps and the hardware, acting as a <span class="accent">translator and traffic controller</span>.
+        </p>
+    </section>
+
+    <section>
+        <h3>The layers of a computer</h3>
+        <div class="layer-diagram">
+            <div class="layer" style="background:#312e81; color:#a5b4fc;">
+                Your Apps (browser, games, shell)
+            </div>
+            <div class="arrow-down">↓ "Hey kernel, I need something" ↓</div>
+            <div class="layer" style="background:#1e3a5f; color:#60a5fa;">
+                Kernel (the brain of the OS)
+            </div>
+            <div class="arrow-down">↓ talks directly to hardware ↓</div>
+            <div class="layer" style="background:#14532d; color:#4ade80;">
+                Hardware (CPU, RAM, keyboard, disk)
+            </div>
+        </div>
+        <p style="margin-top:20px; font-size:0.6em; color:#94a3b8;">
+            Apps <span class="accent-red">can't</span> talk to hardware directly — they <span class="accent">must</span> ask the kernel.<br>
+            This keeps the system safe and organized.
+        </p>
+    </section>
+
+    <section>
+        <h3>Why can't apps talk to hardware directly?</h3>
+        <div class="analogy-box">
+            <div class="label">The problem</div>
+            <p>If every app could directly control the hardware, one buggy app could crash the entire system,
+            overwrite another app's data, or even damage hardware.</p>
+        </div>
+        <div class="analogy-box" style="border-left-color:#4ade80; margin-top:12px;">
+            <div class="label" style="color:#4ade80;">The solution</div>
+            <p>The CPU has two modes: <strong>kernel mode</strong> (full power) and <strong>user mode</strong> (restricted).
+            Only the kernel runs in kernel mode. Apps run in user mode and must ask the kernel for permission to do anything with the hardware.</p>
+        </div>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- WHAT WE'RE BUILDING -->
+<!-- ============================================================ -->
+<section>
+    <h2>What we're building: Tuna OS</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4>Language: C</h4>
+            <p>We write everything in C, the same language used for Linux and Windows kernels. We only use assembly (low-level CPU instructions) where absolutely necessary.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Platform: x86_64</h4>
+            <p>This is the type of CPU in most computers and laptops. 64-bit means it can handle large amounts of memory.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Output: serial (text)</h4>
+            <p>Instead of drawing to a screen, we print text to a simple serial port — like a terminal. This keeps things simple so we can focus on OS concepts.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Testing: QEMU emulator</h4>
+            <p>We don't need real hardware. QEMU pretends to be a computer, so we can test our OS safely on our laptop.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 1: BOOT -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 1</div>
+        <h2>Booting: Waking Up the Computer</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            When you press the power button, the CPU doesn't know what to do yet.<br>
+            It needs someone to load our kernel into memory and start running it.
+        </p>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            That "someone" is a <span class="accent">bootloader</span> — we use one called <span class="accent">GRUB</span>.
+        </p>
+    </section>
+
+    <section>
+        <h3>The boot process, simplified</h3>
+        <ol class="step-list">
+            <li>You press the <span class="accent">power button</span></li>
+            <li>The motherboard runs its firmware (BIOS/UEFI) — basic hardware checks</li>
+            <li>Firmware finds and loads the <span class="accent">bootloader</span> (GRUB) from disk</li>
+            <li>GRUB finds our <span class="accent">kernel file</span> and loads it into memory</li>
+            <li>GRUB jumps to our kernel's entry point — <span class="accent-green">our code starts running!</span></li>
+        </ol>
+    </section>
+
+    <section>
+        <h3>How does GRUB know our file is a kernel?</h3>
+        <p style="font-size:0.6em; color:#94a3b8;">
+            We put a special "ID badge" at the start of our kernel — a <span class="accent">Multiboot2 header</span>.<br>
+            It contains a magic number that GRUB recognizes.
+        </p>
+        <pre><code class="x86asm" data-trim>
+// This is our "ID badge" — GRUB looks for this magic number
+.set MB2_MAGIC, 0xE85250D6
+
+.section .multiboot2
+mb2_header_start:
+    .long MB2_MAGIC        // "I am a valid kernel!"
+    .long 0                // architecture: x86
+    .long (mb2_header_end - mb2_header_start)   // header size
+    .long -(0xE85250D6 + 0 + (mb2_header_end - mb2_header_start)) // checksum
+mb2_header_end:
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>Switching from 32-bit to 64-bit mode</h3>
+        <p style="font-size:0.6em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            GRUB starts us in <span class="accent-yellow">32-bit mode</span> (an older, simpler mode).<br>
+            But we want <span class="accent-green">64-bit mode</span> — it can address way more memory and is what modern OSes use.
+        </p>
+        <p style="font-size:0.6em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            To switch, we need to:
+        </p>
+        <ol class="step-list">
+            <li>Set up basic <span class="accent">page tables</span> (a map of memory — explained later)</li>
+            <li>Tell the CPU to enable <span class="accent">64-bit mode</span> by flipping special flags</li>
+            <li>Turn on <span class="accent">paging</span> (the memory mapping system)</li>
+            <li>Jump into 64-bit code</li>
+        </ol>
+    </section>
+
+    <section>
+        <h3>Our first sign of life!</h3>
+        <p style="font-size:0.6em; color:#94a3b8;">
+            Once we're in 64-bit mode, we can run C code.<br>
+            The first thing we do? Print a message to prove it worked.
+        </p>
+        <pre><code class="c" data-trim>
+void kernel_main(uint64_t multiboot2_addr) {
+    serial_init();   // set up the serial port for output
+    serial_write("kernel: hello from tuna os!\n");
+    // We're alive!
+}
+        </code></pre>
+        <pre><code class="text" data-trim>
+$ make run
+kernel: hello from tuna os!
+        </code></pre>
+        <div class="analogy-box" style="border-left-color:#4ade80;">
+            <div class="label" style="color:#4ade80;">Milestone</div>
+            <p>We went from a completely blank machine to running our own C code. Everything from here builds on this foundation.</p>
+        </div>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 2: CPU TABLES -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 2</div>
+        <h2>Teaching the CPU the Rules</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            The CPU needs two important "lookup tables" to function properly.<br>
+            Think of them as <span class="accent">rule books</span> that tell the CPU how to behave.
+        </p>
+    </section>
+
+    <section>
+        <h3>Rule Book 1: Memory Segments (GDT)</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            The <span class="accent">Global Descriptor Table</span> defines memory regions and their permissions.<br>
+            Most importantly, it defines two privilege levels:
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card" style="border-left:3px solid #f87171;">
+                <h4>Ring 0 — Kernel Mode</h4>
+                <p>Full access to everything. Only our kernel code runs here. It can talk to hardware, manage memory, and do anything.</p>
+            </div>
+            <div class="feature-card" style="border-left:3px solid #4ade80;">
+                <h4>Ring 3 — User Mode</h4>
+                <p>Restricted. User programs (like the shell) run here. They can't touch hardware directly — they must ask the kernel.</p>
+            </div>
+        </div>
+        <pre><code class="c" data-trim>
+gdt[1] = make_descriptor(0x9A, 0xA0);  // Kernel code (full access)
+gdt[2] = make_descriptor(0x92, 0xC0);  // Kernel data (full access)
+gdt[3] = make_descriptor(0xF2, 0xC0);  // User data   (restricted)
+gdt[4] = make_descriptor(0xFA, 0xA0);  // User code   (restricted)
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>Rule Book 2: Error &amp; Event Handlers (IDT)</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            The <span class="accent">Interrupt Descriptor Table</span> tells the CPU:<br>
+            <em>"When something happens, here's what function to call."</em>
+        </p>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>It's like an emergency contact list. Divide by zero? Call handler #0. Keyboard pressed? Call handler #33. A program wants the kernel's help? Call handler #128.</p>
+        </div>
+        <p style="font-size:0.6em; color:#94a3b8; margin-top:16px;">Some examples:</p>
+        <ul class="clean">
+            <li><span class="accent-red">Error #0</span> — Division by zero (a math mistake in code)</li>
+            <li><span class="accent-red">Error #14</span> — Page fault (a program tried to access memory it shouldn't)</li>
+            <li><span class="accent-yellow">Event #32</span> — Timer tick (the clock fires every 10ms)</li>
+            <li><span class="accent-purple">Event #128</span> — System call (a program is asking the kernel for help)</li>
+        </ul>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 3: INTERRUPTS -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 3</div>
+        <h2>Reacting to Events</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Hardware devices (keyboard, timer, disk) need a way to <span class="accent">get the CPU's attention</span>.<br>
+            They do this by sending <span class="accent">interrupts</span> — "hey, something happened!"
+        </p>
+    </section>
+
+    <section>
+        <h3>What is an interrupt?</h3>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>Imagine you're reading a book (the CPU running code). Someone taps your shoulder (an interrupt). You put a bookmark in your page (save your place), deal with the interruption, then go back to reading from your bookmark (resume the code).</p>
+        </div>
+        <p style="font-size:0.65em; color:#94a3b8; margin-top:20px;">
+            The CPU does exactly this: it <span class="accent">saves its current state</span>, runs the interrupt handler,
+            then <span class="accent">resumes where it left off</span>.
+        </p>
+    </section>
+
+    <section>
+        <h3>The interrupt controller (traffic cop)</h3>
+        <p style="font-size:0.6em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Multiple devices can send interrupts. The <span class="accent">PIC</span> (Programmable Interrupt Controller) acts as a traffic cop — it receives signals from devices and forwards them to the CPU one at a time.
+        </p>
+        <pre><code class="c" data-trim>
+void pic_init(void) {
+    // Tell the PIC to start its setup sequence
+    outb(0x20, 0x11);  outb(0xA0, 0x11);
+
+    // Assign interrupt numbers to hardware devices
+    outb(0x21, 0x20);  // Timer, keyboard, etc. → start at #32
+    outb(0xA1, 0x28);  // Disk, mouse, etc.     → start at #40
+
+    // For now, only listen to the timer (ignore other devices)
+    outb(0x21, 0xFE);  // Enable only IRQ 0 (timer)
+    outb(0xA1, 0xFF);  // Disable all others
+}
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>The timer: our OS heartbeat</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            We set up a hardware timer that <span class="accent">fires 100 times per second</span>.<br>
+            Every time it fires, our kernel gets a chance to do housekeeping — like deciding which program should run next.
+        </p>
+        <pre><code class="c" data-trim>
+#define TARGET_HZ  100   // 100 ticks per second = every 10 milliseconds
+
+void pit_init(void) {
+    uint16_t divisor = 1193182 / TARGET_HZ;  // hardware math
+    outb(0x43, 0x36);                         // configure the timer
+    outb(0x40, divisor & 0xFF);               // set the speed
+    outb(0x40, (divisor >> 8) & 0xFF);        // (low byte, then high byte)
+}
+
+// This runs automatically 100 times per second:
+void pit_tick(void) {
+    ticks++;
+    schedule();  // pick the next program to run!
+}
+        </code></pre>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 4: MEMORY -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 4</div>
+        <h2>Managing Memory</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Your computer has RAM — fast storage that programs use while they're running.<br>
+            The kernel needs to <span class="accent">hand out chunks of RAM</span> to programs and <span class="accent">take it back</span> when they're done.
+        </p>
+    </section>
+
+    <section>
+        <h3>Three layers of memory management</h3>
+        <p style="font-size:0.6em; color:#94a3b8;">Each layer builds on the one below it, like floors of a building:</p>
+        <div class="layer-diagram">
+            <div class="layer" style="background:#312e81; color:#a5b4fc;">
+                Layer 3: Heap (kmalloc / kfree)<br>
+                <span style="font-size:0.75em; color:#94a3b8;">Like malloc in C — give me N bytes of memory</span>
+            </div>
+            <div class="arrow-down">↓ uses ↓</div>
+            <div class="layer" style="background:#1e3a5f; color:#60a5fa;">
+                Layer 2: Virtual Memory (address translation)<br>
+                <span style="font-size:0.75em; color:#94a3b8;">Gives each program its own "view" of memory</span>
+            </div>
+            <div class="arrow-down">↓ uses ↓</div>
+            <div class="layer" style="background:#14532d; color:#4ade80;">
+                Layer 1: Physical Memory (page allocator)<br>
+                <span style="font-size:0.75em; color:#94a3b8;">Tracks which 4 KB chunks of actual RAM are free or used</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>Layer 1: Physical memory — tracking real RAM</h3>
+        <p style="font-size:0.6em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            We split all of RAM into <span class="accent">4 KB pages</span> (small, equal-sized chunks).<br>
+            A simple bitmap tracks which pages are free (0) or used (1).
+        </p>
+        <pre><code class="text" data-trim>
+RAM split into 4 KB pages:
+
+Page:    [0] [1] [2] [3] [4] [5] [6] [7] ...
+Bitmap:   1   1   1   0   0   1   0   0  ...
+          ↑           ↑
+       used         free — can be given to a program
+        </code></pre>
+        <pre><code class="c" data-trim>
+// Ask for a free page of RAM
+uint64_t page = pmm_alloc_frame();   // returns address of a free 4KB block
+
+// Give it back when done
+pmm_free_frame(page);
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>Layer 2: Virtual memory — every program gets its own "world"</h3>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>Imagine two people each think they live at "123 Main Street" — but their mail goes to completely different physical houses. That's virtual memory: every program thinks it has the same addresses, but the kernel maps them to different physical RAM behind the scenes.</p>
+        </div>
+        <p style="font-size:0.6em; color:#94a3b8; margin-top:16px; max-width:80%; margin-left:auto; margin-right:auto;">
+            This is how programs are <span class="accent">isolated</span> from each other — one program can't accidentally (or intentionally) read another program's memory.
+        </p>
+        <pre><code class="c" data-trim>
+// Map virtual address 0x400000 to physical page 0x1A000
+// with read+write permissions for user programs
+vmm_map_page(0x400000, 0x1A000, VMM_FLAG_PRESENT | VMM_FLAG_WRITE | VMM_FLAG_USER);
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>Layer 3: The heap — easy memory allocation</h3>
+        <p style="font-size:0.6em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            With the lower layers in place, we can now offer a simple interface:<br>
+            <span class="accent">kmalloc</span> (give me some memory) and <span class="accent">kfree</span> (I'm done with it).
+        </p>
+        <pre><code class="c" data-trim>
+// Allocate memory — just like malloc() in normal C programs
+uint64_t *a = kmalloc(64);    // give me 64 bytes
+uint64_t *b = kmalloc(128);   // give me 128 bytes
+
+*a = 0xDEADBEEF;   // use the memory
+*b = 0xCAFEBABE;
+
+kfree(a);           // done with a — return it
+kfree(b);           // done with b — return it
+        </code></pre>
+        <p style="font-size:0.55em; color:#94a3b8;">
+            Under the hood: kmalloc asks the virtual memory layer for pages,<br>
+            which asks the physical memory layer for actual RAM.
+        </p>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 5: PROCESSES -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 5</div>
+        <h2>Running Multiple Programs</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            A computer feels like it runs many programs at once, but a single CPU core can only run <span class="accent">one thing at a time</span>.
+        </p>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            The trick? <span class="accent">Switch between them so fast</span> that it looks simultaneous.
+        </p>
+    </section>
+
+    <section>
+        <h3>What is a process (task)?</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Each running program is a <span class="accent">task</span>. The kernel keeps a record card for each one:
+        </p>
+        <pre><code class="c" data-trim>
+struct task {
+    uint64_t     id;       // unique ID (task #1, task #2, etc.)
+    uint64_t     rsp;      // where this task's CPU state is saved
+    uint32_t     state;    // READY, RUNNING, or DEAD
+    uint8_t     *stack;    // this task's own private stack memory
+    struct task *next;     // pointer to the next task (linked list)
+};
+        </code></pre>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>It's like a teacher managing students. Each student (task) has their own desk (stack) and worksheet (state). The teacher goes around the room giving each student a few seconds of attention before moving to the next one.</p>
+        </div>
+    </section>
+
+    <section>
+        <h3>Context switching: the magic trick</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            When the timer fires (100 times/second), the kernel can <span class="accent">pause</span> the current task
+            and <span class="accent">resume</span> another one. This is called a <span class="accent">context switch</span>.
+        </p>
+        <pre><code class="text" data-trim>
+What happens during a context switch:
+
+1. Timer fires → interrupt handler runs
+2. Save current task's registers (its "brain state") onto its stack
+3. Pick the next task to run (round-robin: just go to the next one in line)
+4. Load the next task's saved registers from its stack
+5. Return → CPU is now running the new task seamlessly
+        </code></pre>
+        <p style="font-size:0.55em; color:#94a3b8; margin-top:12px;">
+            This happens so fast (~microseconds) that you'd never notice the switching.
+        </p>
+    </section>
+
+    <section>
+        <h3>The context switch in code</h3>
+        <p style="font-size:0.6em; color:#94a3b8;">
+            This is one of the few places we <span class="accent-yellow">must</span> use assembly — we need to directly manipulate CPU registers.
+        </p>
+        <pre><code class="x86asm" data-trim>
+switch_to:
+    // Save the current task's state
+    push %rbp            // save all important registers
+    push %rbx
+    push %r12
+    push %r13
+    push %r14
+    push %r15
+    mov  %rsp, (%rdi)   // save the stack pointer
+
+    // Load the next task's state
+    mov  %rsi, %rsp     // switch to the other task's stack
+    pop  %r15            // restore its registers
+    pop  %r14
+    pop  %r13
+    pop  %r12
+    pop  %rbx
+    pop  %rbp
+    ret                  // jump back into the other task's code
+        </code></pre>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 6: SYSCALLS -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 6</div>
+        <h2>Letting Programs Talk to the Kernel</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            User programs run in restricted mode — they can't access hardware directly.<br>
+            So how does a program print text or read input?<br>
+            It asks the kernel using a <span class="accent">system call</span>.
+        </p>
+    </section>
+
+    <section>
+        <h3>What is a system call?</h3>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>A system call is like ringing the service bell at a hotel front desk. You (the program) can't go behind the counter yourself, but you can ring the bell and ask the staff (the kernel) to do something for you — like "please print this text" or "please read a character from the keyboard".</p>
+        </div>
+        <p style="font-size:0.65em; color:#94a3b8; margin-top:16px;">
+            Our kernel supports these system calls:
+        </p>
+        <ul class="clean">
+            <li><span class="accent">read</span> — get a character from keyboard input</li>
+            <li><span class="accent">write</span> — print text to the screen</li>
+            <li><span class="accent">listfiles</span> — show all files</li>
+            <li><span class="accent">exec</span> — run another program</li>
+            <li><span class="accent">exit</span> — end the current program</li>
+        </ul>
+    </section>
+
+    <section>
+        <h3>How a system call works</h3>
+        <pre><code class="text" data-trim>
+User program                              Kernel
+───────────                              ──────
+
+1. "I want to print 'hello'"
+2. Put syscall number in a register
+3. Put arguments in registers
+4. Execute special instruction ──────►  5. CPU switches to kernel mode
+   (int 0x80)                           6. Kernel reads the registers
+                                        7. Kernel does the work (prints text)
+8. CPU returns to user mode  ◄──────    8. Kernel puts result in register
+9. Program continues
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>System calls in code</h3>
+        <div class="two-col">
+            <div>
+                <p style="font-size:0.6em; color:#94a3b8;">What the program does:</p>
+                <pre><code class="c" data-trim style="font-size:0.9em;">
+// "Ring the bell" with int 0x80
+static int64_t syscall2(
+    uint64_t nr,    // which service?
+    uint64_t a1,    // argument 1
+    uint64_t a2     // argument 2
+) {
+    int64_t ret;
+    __asm__ volatile (
+        "int $0x80"
+        : "=a"(ret)
+        : "a"(nr), "D"(a1), "S"(a2)
+    );
+    return ret;
+}
+
+// Example: print "hello"
+syscall2(SYS_WRITE, "hello", 5);
+                </code></pre>
+            </div>
+            <div>
+                <p style="font-size:0.6em; color:#94a3b8;">What the kernel does:</p>
+                <pre><code class="c" data-trim style="font-size:0.9em;">
+// Handle the "bell ring"
+void syscall_dispatch(
+    struct interrupt_frame *f
+) {
+    switch (f->rax) {
+    case SYS_READ:
+        // read from keyboard
+        break;
+    case SYS_WRITE:
+        // print text to serial
+        break;
+    case SYS_EXEC:
+        // load & run a program
+        break;
+    case SYS_EXIT:
+        // end the program
+        break;
+    }
+}
+                </code></pre>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>Entering user mode for the first time</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            An interesting chicken-and-egg problem: to "return" from kernel to user mode, the CPU uses a special instruction called <span class="accent">iretq</span> (interrupt return).<br><br>
+            But user code hasn't run yet! So we <span class="accent">fake</span> an interrupt return — we set up the stack as if an interrupt had happened, then "return" from it.
+        </p>
+        <pre><code class="text" data-trim>
+We set up the stack to look like this:
+
+ "Where to return to"  →  entry point of the user program
+ "What mode to use"    →  user mode (ring 3)
+ "Interrupts enabled?" →  yes
+ "User's stack"        →  a fresh stack we allocated for the program
+
+Then we call iretq and the CPU "returns" into the user program!
+        </code></pre>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 7: FILESYSTEM & ELF -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 7</div>
+        <h2>Files and Loading Programs</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            We need two things: a <span class="accent">file system</span> to store programs,<br>
+            and a <span class="accent">program loader</span> to read and run them.
+        </p>
+    </section>
+
+    <section>
+        <h3>A simple file system in RAM</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Instead of reading from a hard drive (which is complex), we keep files <span class="accent">in memory</span>.<br>
+            The user programs are baked into the kernel binary at build time.
+        </p>
+        <pre><code class="c" data-trim>
+// At boot time, register the embedded programs as "files"
+ramfs_init();
+ramfs_create("hello.elf", hello_data, hello_size);
+ramfs_create("shell.elf", shell_data, shell_size);
+
+// Now we can look them up by name:
+const struct ramfs_file *f = ramfs_find("hello.elf");
+// f->data has the file contents, f->size has the length
+        </code></pre>
+        <div class="analogy-box">
+            <div class="label">Analogy</div>
+            <p>It's like packing a lunch box. Instead of stopping at a restaurant (reading from disk), we packed the food (programs) into our bag (kernel) before we left home (at build time).</p>
+        </div>
+    </section>
+
+    <section>
+        <h3>Loading programs: the ELF format</h3>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            Programs are stored in a format called <span class="accent">ELF</span> (Executable and Linkable Format).<br>
+            It's the standard format on Linux and Unix systems.
+        </p>
+        <p style="font-size:0.65em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            An ELF file is like a <span class="accent">shipping package</span> with a label:
+        </p>
+        <pre><code class="text" data-trim>
+ELF file structure:
+┌─────────────────────────────────────────────┐
+│ Header                                       │
+│   - Magic bytes: 0x7f 'E' 'L' 'F'          │  ← "I'm an ELF file"
+│   - Architecture: x86_64                     │  ← "I'm for this CPU"
+│   - Entry point: 0x400000                    │  ← "Start running here"
+├─────────────────────────────────────────────┤
+│ Segment 1: code (the instructions)           │  ← Load at address X
+│ Segment 2: data (variables, strings)         │  ← Load at address Y
+└─────────────────────────────────────────────┘
+
+Our loader reads the header, copies segments into memory,
+then jumps to the entry point.
+        </code></pre>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- STEP 8: SHELL -->
+<!-- ============================================================ -->
+<section>
+    <section>
+        <div class="phase-badge">Step 8</div>
+        <h2>The Shell: Putting It All Together</h2>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            The <span class="accent">shell</span> is a command-line interface — it's the first thing<br>
+            you see when the OS finishes booting.
+        </p>
+        <p style="font-size:0.7em; color:#94a3b8; max-width:80%; margin:10px auto;">
+            It's a <span class="accent">user program</span>, not part of the kernel itself.<br>
+            It uses everything we've built so far.
+        </p>
+    </section>
+
+    <section>
+        <h3>What the shell does</h3>
+        <pre><code class="text" data-trim>
+The shell loop:
+
+1. Print "tuna> " prompt
+2. Wait for you to type a command
+3. Read what you typed, character by character
+4. When you press Enter:
+   - "ls"   → ask the kernel to list files
+   - "exit" → ask the kernel to shut down
+   - anything else → try to run it as a program name
+5. Go back to step 1
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>The shell code</h3>
+        <p style="font-size:0.55em; color:#94a3b8;">
+            Notice: no libraries, no printf, no scanf. Just raw system calls.
+        </p>
+        <pre><code class="c" data-trim>
+void _start(void) {
+    char line[128];
+
+    for (;;) {
+        write_str("tuna> ");       // print the prompt (uses SYS_WRITE)
+
+        // Read a line character by character (uses SYS_READ)
+        uint64_t pos = 0;
+        for (;;) {
+            char c = read_char();
+            if (c == '\n') break;  // Enter pressed
+            line[pos++] = c;
+            write_char(c);         // echo the character back
+        }
+        line[pos] = '\0';
+
+        // Handle the command
+        if (str_eq(line, "ls"))
+            syscall0(SYS_LISTFILES);       // list files
+        else if (str_eq(line, "exit"))
+            syscall0(SYS_EXIT);            // quit
+        else
+            syscall2(SYS_EXEC, line, ...); // try to run as program
+    }
+}
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>Everything connects: the layers at work</h3>
+        <p style="font-size:0.6em; color:#94a3b8; margin-bottom:16px;">
+            When you type <code>exec hello.elf</code> in the shell, here's what happens across all our layers:
+        </p>
+        <pre><code class="text" data-trim>
+You type "exec hello.elf" and press Enter
+
+Shell (user mode, ring 3)
+  └─ syscall(SYS_EXEC, "hello.elf")    ← asks the kernel via int 0x80
+
+Kernel (kernel mode, ring 0)
+  ├─ ramfs_find("hello.elf")           ← finds the file in our RAM filesystem
+  ├─ elf_load(file_data, file_size)    ← parses the ELF, copies code into memory
+  │    ├─ pmm_alloc_frame()            ← gets physical RAM pages
+  │    └─ vmm_map_page()              ← maps them into the program's address space
+  └─ jump to entry point (iretq)      ← switches to user mode, runs hello
+
+Hello program (user mode, ring 3)
+  └─ syscall(SYS_WRITE, "Hello from ELF!")  ← prints its message
+  └─ syscall(SYS_EXIT)                      ← exits, kernel returns to shell
+        </code></pre>
+    </section>
+
+    <section>
+        <h3>The full demo</h3>
+        <pre><code class="text" data-trim>
+$ make run
+
+kernel: hello from tuna os!
+kernel: parsing multiboot2 memory map...
+kernel: initializing pmm... pmm ready
+kernel: initializing vmm... vmm ready
+kernel: initializing kheap... self-test passed
+kernel: initializing gdt... gdt ready
+kernel: initializing tss... tss ready
+kernel: initializing idt... idt ready
+kernel: triggering int3 self-test
+[exception] vector=3 (Breakpoint) — handled.
+kernel: initializing pic... pic ready
+kernel: initializing ramfs...
+  ramfs: hello.elf  shell.elf
+kernel: launching shell...
+
+tuna> ls
+  hello.elf  shell.elf
+tuna> exec hello.elf
+  Hello from ELF!
+tuna> exit
+        </code></pre>
+    </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- BIG PICTURE -->
+<!-- ============================================================ -->
+<section>
+    <h2>The complete picture</h2>
+    <p style="font-size:0.6em; color:#94a3b8; margin-bottom:12px;">
+        Every step we built, in order. Each one depends on the ones before it.
+    </p>
+    <pre><code class="text" data-trim style="font-size:0.8em;">
+ Power on
+   │
+   ▼
+ GRUB bootloader loads our kernel
+   │
+   ▼
+ boot.S — switch CPU from 32-bit to 64-bit mode
+   │
+   ▼
+ kernel_main() — our C code starts!
+   ├── serial_init()       ← set up text output
+   ├── multiboot2_parse()  ← learn what RAM is available
+   ├── pmm_init()          ← physical memory tracker
+   ├── vmm_init()          ← virtual memory (address translation)
+   ├── kheap_init()        ← kmalloc / kfree
+   ├── gdt_init()          ← privilege levels (kernel vs user)
+   ├── tss_init()          ← stack for kernel mode transitions
+   ├── idt_init()          ← error & event handlers
+   ├── pic_init()          ← hardware interrupt routing
+   ├── syscall_init()      ← system call handler
+   ├── ramfs_init()        ← in-memory file system
+   └── launch shell        ← jump to user mode, run the shell!
+    </code></pre>
+</section>
+
+<!-- ============================================================ -->
+<!-- KEY TAKEAWAYS -->
+<!-- ============================================================ -->
+<section>
+    <h2>Key takeaways</h2>
+    <ul class="clean">
+        <li>An OS is <span class="accent">not magic</span> — it's software that manages hardware for your programs</li>
+        <li>The kernel is the <span class="accent">core</span> — it's the first thing that runs and it stays running forever</li>
+        <li>Everything is built in <span class="accent-green">layers</span> — each layer depends on the ones below it</li>
+        <li>Programs can't touch hardware directly — they <span class="accent">ask the kernel</span> via system calls</li>
+        <li>Multitasking is an <span class="accent-yellow">illusion</span> — the CPU switches tasks so fast you don't notice</li>
+        <li>Memory management gives each program its <span class="accent">own private world</span></li>
+        <li>You can build all of this with <span class="accent-green">C code</span> and a bit of assembly</li>
+    </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- RESOURCES -->
+<!-- ============================================================ -->
+<section>
+    <h2>Want to learn more?</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h4>OSDev Wiki</h4>
+            <p>The go-to community resource for OS development. Tutorials, references, and forums.</p>
+        </div>
+        <div class="feature-card">
+            <h4>xv6 (MIT)</h4>
+            <p>A teaching OS from MIT — simple Unix-like kernel used in university courses worldwide.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Writing an OS in Rust</h4>
+            <p>A blog series by Philipp Oppermann — great alternative if you prefer Rust over C.</p>
+        </div>
+        <div class="feature-card">
+            <h4>Intel Software Developer's Manual</h4>
+            <p>The official CPU documentation. Dense, but it's the ultimate reference for x86 details.</p>
+        </div>
+    </div>
+    <br>
+    <h3>Thank you!</h3>
+    <p style="font-size:0.6em; color:#60a5fa;">
+        github.com/Thu-Min/tuna_os
+    </p>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script>
+    Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        transition: 'slide',
+        controlsTutorial: false,
+        plugins: [RevealHighlight]
+    });
+</script>
+</body>
+</html>
